@@ -1,0 +1,14 @@
+{
+    "name": "x25012/laravel",
+    "autoload": {
+        "psr-4": {
+            "X25012\\Laravel\\": "src/"
+        }
+    },
+    "require-dev": {
+        "laravel/breeze": "^2.3"
+    },
+    "require": {
+        "laravel/ui": "^4.6"
+    }
+}

@@ -1,0 +1,2 @@
+apache ,mysqli,phpand phpmyadmin setup
+https://chatgpt.com/c/686f9206-98dc-8013-8c6f-e9115865570c

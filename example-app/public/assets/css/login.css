@@ -1,0 +1,98 @@
+body {
+      height: 100vh;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1a1a40, #2e2e6f, #4b4bb7);
+      background-size: 200% 200%;
+      animation: gradientBG 12s ease infinite;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      animation: float 8s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-40px); }
+      100% { transform: translateY(0); }
+    }
+
+    .login-card {
+      width: 400px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: zoomIn 1s ease;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .login-card h2 {
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #f0f0ff;
+    }
+
+    .form-control {
+      border-radius: 12px;
+      padding: 12px;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    .form-control::placeholder {
+      color: #ddd;
+    }
+
+    .btn-lively {
+      width: 100%;
+      border-radius: 12px;
+      padding: 12px;
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: white;
+      font-weight: 600;
+      border: none;
+      transition: 0.3s;
+    }
+
+    .btn-lively:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #2575fc, #6a11cb);
+    }
+
+    .extra-links {
+      margin-top: 15px;
+    }
+
+    .extra-links a {
+      color: #9ad1ff;
+      text-decoration: none;
+      margin: 0 8px;
+      transition: 0.3s;
+    }
+
+    .extra-links a:hover {
+      text-decoration: underline;
+      color: #ffffff;
+    }

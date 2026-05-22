@@ -1,0 +1,136 @@
+@import "./custome.css";
+@import "./guest.css";
+@import "./delete-profile.css";
+@import "./request.css";
+@import "./setting.css";
+@import "./report.css";
+
+
+/* ===========================
+   CREATE PROFILE PAGE
+=========================== */
+
+/* body {
+    background: linear-gradient(135deg, #fdf3e6, #fff);
+    background-color: #f5f6f8;
+    font-family: 'Inter', sans-serif;
+} */
+
+body {
+    background-color: #f8f4f4 !important; /* Soft grey-pink tone */
+    font-family: 'Inter', sans-serif;
+}
+
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 15px;
+}
+
+.profile-card {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 40px;
+    max-width: 950px;
+    width: 100%;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+}
+
+.title {
+    text-align: center;
+    font-weight: 800;
+    color: #7a1f28;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #777;
+    margin-bottom: 30px;
+}
+
+/* Stepper */
+.stepper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 35px;
+    position: relative;
+}
+
+.stepper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #f0d9dc;
+    z-index: 0;
+}
+
+.step {
+    background: #fff;
+    border: 2px solid #f0d9dc;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #7a1f28;
+    z-index: 1;
+}
+
+.step.active {
+    background: #7a1f28;
+    color: #fff;
+    border-color: #7a1f28;
+}
+
+/* Sections */
+.section {
+    background: #fdf7f8;
+    border-radius: 18px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.section h4 {
+    color: #7a1f28;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #7a1f28;
+}
+
+input,
+.data {
+    height: 45px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.btn-main {
+    background: #7a1f28;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 14px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-main:hover {
+    background: #9d2b34;
+}
+
+.hidden {
+    display: none;
+}
