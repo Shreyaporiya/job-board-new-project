@@ -1,21 +1,84 @@
 import $ from 'jquery';
-import 'select2';
-import 'select2/dist/css/select2.css';
-
 window.$ = window.jQuery = $;
 
 import TomSelect from "tom-select";
 import "tom-select/dist/css/tom-select.css";
 
+
+// SweetAlert2
+import Swal from 'sweetalert2';
+window.Swal = Swal;
+
+// Handle Laravel flash messages (global)
+document.addEventListener('DOMContentLoaded', () => {
+
+    if (!window.flashData) return;
+
+    const flash = window.flashData;
+
+    if (flash.success) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: flash.success,
+            allowOutsideClick: false,
+            confirmButtonColor: '#3085d6',
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            },
+            timer: 3000
+        });
+    }
+
+    if (flash.error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: flash.error,
+            confirmButtonColor: '#d33',
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            },
+            timer: 3000
+        });
+    }
+
+    if (flash.warning) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: flash.warning,
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            },
+            timer: 3000
+        });
+    }
+
+    if (flash.info) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Info',
+            text: flash.info,
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            },
+            timer: 3000
+        });
+    }
+});
+
 $(document).ready(function () {
 
     const oldCountry = window.profileLocation?.country;
-    const oldState   = window.profileLocation?.state;
-    const oldCity    = window.profileLocation?.city;
+    const oldState = window.profileLocation?.state;
+    const oldCity = window.profileLocation?.city;
 
-    /* =========================
-       LOAD STATES
-    ========================= */
+    /* LOAD STATES */
     function loadStates(countryId, selectedState = null) {
         if (!countryId) return;
 
@@ -126,3 +189,24 @@ function updateIndicator(step) {
     const active = document.getElementById('indicator' + step);
     if (active) active.classList.add('active');
 }
+
+const img = document.getElementById('profileImage');
+const upload = document.getElementById('profileUpload');
+img.onclick = () => upload.click();
+upload.onchange = e => img.src = URL.createObjectURL(e.target.files[0]);
+
+const modal = document.getElementById('activationModal');
+modal.addEventListener('show.bs.modal', e => {
+    const action = e.relatedTarget.dataset.action;
+    document.getElementById('activationInput').value = action;
+
+    if (action === 'deactivate') {
+        modalTitle.innerText = 'Deactivate Profile?';
+        modalText.innerText = 'Your profile will be hidden from others.';
+        modalConfirm.className = 'btn btn-danger';
+    } else {
+        modalTitle.innerText = 'Activate Profile?';
+        modalText.innerText = 'Your profile will be visible to others.';
+        modalConfirm.className = 'btn btn-success';
+    }
+});

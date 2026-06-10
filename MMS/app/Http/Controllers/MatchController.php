@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
+use App\Models\Rating;
+use carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use App\Models\UserRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -33,7 +36,7 @@ class MatchController extends Controller
             ->where('user_id', '!=', Auth::id())
             ->whereHas('user', function ($q) {
                 $q->where('status', '!=', 'banned')
-                   ->whereNotNull('gender');
+                    ->whereNotNull('gender');
             })
             ->where('is_active', 1)
             ->whereHas(
@@ -43,34 +46,7 @@ class MatchController extends Controller
             )
             ->get();
 
-        /* ATTACH REQUEST STATUS */
-        $profiles = $profiles->map(function ($profile) use ($relations, $myProfile) {
 
-            $profile->requestStatus = 'none'; // default
-
-            foreach ($relations as $relation) {
-
-                if (
-                    ($relation->sender_id == $myProfile->id && $relation->receiver_id == $profile->id) ||
-                    ($relation->sender_id == $profile->id && $relation->receiver_id == $myProfile->id)
-                ) {
-                    if ($relation->is_blocked) {
-                        $profile->requestStatus = 'blocked';
-                    } elseif ($relation->is_accepted) {
-                        $profile->requestStatus = 'friends';
-                    } elseif ($relation->is_rejected) {
-                        $profile->requestStatus = 'rejected';
-                    } elseif ($relation->is_pending) {
-                        $profile->requestStatus =
-                            $relation->sender_id == $myProfile->id ? 'sent' : 'received';
-                    }
-
-                    break;
-                }
-            }
-
-            return $profile;
-        });
 
         /* CALCULATE MATCH SCORE */
         $matches = [];
@@ -78,7 +54,7 @@ class MatchController extends Controller
         foreach ($profiles as $profile) {
 
             // ❌ Skip blocked users
-            if ($profile->requestStatus === 'blocked') {
+            if ($profile->is_blocked) {
                 continue;
             }
 
@@ -95,7 +71,78 @@ class MatchController extends Controller
         /* SORT BY SCORE */
         usort($matches, fn($a, $b) => $b['score'] <=> $a['score']);
 
-        return view('matches.show-matches', compact('matches'));
+        $rating_status = "nothing";
+
+        $user = auth()->user();
+
+        if ($user) {
+
+            $rating = DB::table('ratings')
+                ->where('user_id', $user->id)
+                ->latest('updated_at')
+                ->first();
+
+            // Never rated before
+            if (!$rating) {
+
+                $rating_status = "show";
+
+            } else {
+
+                // User already rated
+                if ($rating->status == "rated") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(30))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User skipped
+                elseif ($rating->status == "skipped") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(3))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User cancelled popup
+                elseif ($rating->status == "cancelled") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(1))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                } elseif ($rating->status === "pending") {
+                    $rating_status = "show";
+                }
+            }
+        }
+
+
+        return view('matches.show-matches', compact('matches', 'rating_status'));
     }
 
     /* MATCH SCORE LOGIC */
@@ -164,9 +211,8 @@ class MatchController extends Controller
         if (
             !empty($me->preferences['location'])
         ) {
-            if(!empty($candidate->country) && $me->preferences['location'][0] === $candidate->country)
-            {
-                $score+=10;
+            if (!empty($candidate->country) && $me->preferences['location'][0] === $candidate->country) {
+                $score += 10;
             }
             $score += 10;
         }

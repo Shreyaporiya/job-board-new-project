@@ -26,7 +26,43 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FriendRequestController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\LocationController;
+use App\http\Controllers\StudentController;
 use App\Http\Controllers\Select2Controller;
+
+// routes/web.php
+use Illuminate\Http\Request;
+use Stripe\Stripe;
+use Stripe\Checkout\Session;
+use Laravel\Cashier\Cashier;
+
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/subscription', function () {
+        return view('subscription');
+    });
+
+    Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout'])
+        ->name('subscription.checkout');
+
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])
+        ->name('subscription.success');
+
+    Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])
+        ->name('subscription.cancel');
+
+    Route::get('/profiles', function () {
+        return view('profile');
+    })->name('profiles');
+});
+
+Route::get('/success', function () {
+    return view('success');
+});
+
+Route::get('/cancel', function () {
+    return view('cancel');
+});
 
 Route::get('/ajax/states/{country_id}', [LocationController::class, 'getStates']);
 Route::get('/ajax/cities/{state_id}', [LocationController::class, 'getCities']);
@@ -165,17 +201,17 @@ Route::get('/cache-demo', function () {
 });
 
 
-Route::get('/serialize-demo',function(){
+Route::get('/serialize-demo', function () {
     $user = User::take(3)->get();
     $serialized = serialize($user);
     $unserialized = unserialize($serialized);
     $json = $user->tojson();
 
-    return view('serialize-demo',[
+    return view('serialize-demo', [
         'users' => $user,
-        'serialized'=>$serialized,
-        'unserialized' =>$unserialized,
-        'json'=> $json,
+        'serialized' => $serialized,
+        'unserialized' => $unserialized,
+        'json' => $json,
     ]);
 });
 
@@ -245,7 +281,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Auth::routes();
 

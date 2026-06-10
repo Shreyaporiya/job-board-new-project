@@ -3,13 +3,13 @@ import './bootstrap';
 import $ from 'jquery';
 window.$ = window.jQuery = $;
 
-
-// Icons
+// Bootstrap Icons
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-// Custom JS
+// Custom JS files
 import './guest';
 import './dashboard';
 import './header';
 import './profile';
+
 

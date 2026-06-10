@@ -1,17 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-    @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                <strong>{{ session('success') }}</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
     {{-- HERO --}}
     <section class="hero-elegant">
         <div class="container">
             <div class="row align-items-center">
-
                 <!-- TEXT -->
                 <div class="col-lg-6">
                     <span class="hero-badge">
@@ -31,6 +24,7 @@
                     <a href="{{ route('matches.show') }}" class="btn app-btn-primary">
                         Browse Matches
                     </a>
+
                 </div>
 
                 <!-- IMAGE -->
@@ -59,7 +53,7 @@
                             <div class="profile-card-modern">
                                 <div class="profile-img-wrapper">
                                     <img src="{{ $profile->images->first()
-                    ? asset($profile->images->first()->file_path)
+                    ? Storage::url($profile->images->first()->file_path)
                     : 'https://via.placeholder.com/300' }}">
 
                                     @if($profile->is_premium)
@@ -76,7 +70,8 @@
                                         <span>{{ $profile->community }}</span>
                                     </div>
 
-                                    <a href="{{ route('user.show', $profile->id) }}" class="btn btn-view-modern">
+                                    <a href="{{ route('user.show', ['id' => $profile->id, 'page' => 'dashboard']) }}"
+                                        class="btn btn-view-modern">
                                         View Profile
                                     </a>
                                     <div class="mb-3"></div>
@@ -128,73 +123,126 @@
     </section>
 
     {{-- SUCCESS STORIES --}}
-    <section class="success-stories-modern">
+    <section class="success-stories-modern py-5">
+        <!-- Header + Add Button -->
         <div class="container">
-
-            <!-- Section Header -->
-            <div class="text-center mb-5">
-                <h4 class="stories-title">Love Stories That Inspire</h4>
-                <p class="stories-subtitle">
-                    Real journeys of couples who found their forever here
-                </p>
-            </div>
-
-            <!-- Stories -->
-            <div class="row g-4">
-
-                <div class="col-md-4">
-                    <div class="story-card-modern">
-                        <div class="quote-icon">“</div>
-                        <p class="story-text">
-                            This platform helped us find each other with trust and comfort.
-                        </p>
-
-                        <div class="story-user">
-                            <img src="{{ asset('images/couple.jpeg') }}">
-                            <div>
-                                <strong>Rohan & Priya</strong>
-                                <span>Married in 2024</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-5">
+                <div>
+                    <h4 class="stories-title mb-1">Love Stories That Inspire</h4>
+                    <p class="stories-subtitle mb-0 text-muted">
+                        Real journeys of couples who found their forever here
+                    </p>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="story-card-modern">
-                        <div class="quote-icon">“</div>
-                        <p class="story-text">
-                            Genuine profiles and a very respectful experience throughout.
-                        </p>
-
-                        <div class="story-user">
-                            <img src="{{ asset('images/couple.jpeg') }}">
-                            <div>
-                                <strong>Akash & Neha</strong>
-                                <span>Engaged</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="story-card-modern">
-                        <div class="quote-icon">“</div>
-                        <p class="story-text">
-                            A beautifully designed platform that truly values relationships.
-                        </p>
-
-                        <div class="story-user">
-                            <img src="{{ asset('images/couple.jpeg') }}">
-                            <div>
-                                <strong>Vijay & Ritu</strong>
-                                <span>Married</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                @auth
+                    <a href="{{ route('testimonial.create') }}"
+                        class="btn btn-add px-4 py-1 rounded-4 shadow-sm d-flex align-items-center">
+                        <span class="fs-4 pe-1">+ </span> Add Your Success Story
+                    </a>
+                @endauth
             </div>
         </div>
+
+        @if($testimonials->isEmpty())
+            <p class="text-center text-muted">No testimonials available</p>
+        @else
+            <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+
+                <div class="carousel-inner">
+                    <div class="container">
+
+                        @foreach($testimonials->chunk(3) as $chunkIndex => $testimonialChunk)
+                            <div class="carousel-item {{ $chunkIndex == 0 ? 'active' : '' }}">
+                                <div class="row justify-content-center g-4">
+
+                                    @foreach($testimonialChunk as $story)
+                                                <div class="col-lg-4 col-md-6">
+                                                    <div class="story-card-modern p-4 shadow-lg rounded-4 position-relative h-100">
+                                                        <!-- Quote Icon -->
+                                                        <div class="quote-icon position-absolute">“</div>
+
+                                                        <!-- Message -->
+                                                        <p class="story-text text-dark mt-3">
+                                                            {{ $story->message }}
+                                                        </p>
+
+                                                        <!-- User Info -->
+                                                        <div class="story-user d-flex align-items-center mt-4">
+                                                            <img src="{{ $story->image
+                                        ? Storage::url($story->image)
+                                        : asset('images/default-couple.jpg') }}"
+                                                                class="rounded-circle me-3 border border-2 border-white shadow-sm" width="60"
+                                                                height="60" alt="Couple Image">
+
+                                                            <div>
+                                                                <strong class="d-block">{{ $story->couple_name }}</strong>
+                                                                <span class="text-muted">{{ $story->status }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                    @endforeach
+
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                </div>
+
+                <!-- Indicators -->
+                <div class="carousel-indicators">
+                    @foreach($testimonials->chunk(3) as $chunkIndex => $chunk)
+                        <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="{{ $chunkIndex }}"
+                            class="{{ $chunkIndex == 0 ? 'active' : '' }}"></button>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
     </section>
 
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.counter').forEach(counter => {
+                const target = +counter.dataset.count;
+                const speed = target / 200;
+
+                const update = () => {
+                    const count = +counter.innerText;
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + speed);
+                        setTimeout(update, 10);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                update();
+            });
+        });
+    </script>
+
+    <!-- sweetalert -->
+
+    <script>
+        window.routes = {
+            rate: "{{ route('rating.store') }}",
+            skip: "{{ route('rating.skip') }}",
+            cancel: "{{ route('rating.cancel') }}"
+        };
+
+        window.ratingData = {
+            status: @json($rating_status ?? 'nothing')
+        };
+    </script>
+    <script>
+        window.flashData = {
+            success: @json(session('success')),
+            error: @json(session('error')),
+            warning: @json(session('warning')),
+            info: @json(session('info')),
+        };
+    </script>
 @endsection

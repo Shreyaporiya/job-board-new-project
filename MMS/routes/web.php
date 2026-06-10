@@ -17,7 +17,119 @@ use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\ProfileReportController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ProfileApiController;
+use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\RatingController;
+use App\Http\Controllers\SubscriptionController;
+use Laravel\Cashier\Http\Controllers\WebhookController;
+use App\Http\Controllers\Admin\PaymentManagementController;
+use App\Http\Controllers\Admin\SubscriptionManagementController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\AdminTestNotification;
+use App\Notifications\PaymentFailedNotification;
+
+Route::get('/test-payment-failed', function () {
+
+    $user = auth()->user();
+
+    $user->notify(
+        new PaymentFailedNotification()
+    );
+
+    return 'Notification sent';
+});
+
+
+Route::get('/test-admin-notification', function () {
+
+    $admin = User::where('role', 'admin')->first();
+
+    $admin->notify(
+        new AdminTestNotification(
+            'This is a dummy admin notification for testing.'
+        )
+    );
+
+    return 'Dummy notification sent successfully!';
+});
+
+Route::middleware('auth')->group(function () {
+
+    Route::get(
+        '/admin/notifications',
+        [NotificationController::class, 'index']
+    )->name('admin.notifications');
+
+    Route::post(
+        '/admin/notifications/read/{id}',
+        [NotificationController::class, 'markAsRead']
+    )->name('admin.notifications.read');
+
+    Route::post(
+        '/admin/notifications/read-all',
+        [NotificationController::class, 'markAllAsRead']
+    )->name('admin.notifications.readAll');
+
+    Route::delete(
+        '/admin/notifications/delete/{id}',
+        [NotificationController::class, 'destroy']
+    )->name('admin.notifications.delete');
+
+});
+
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
+
+Route::middleware(['auth', 'premium'])->group(function () {
+
+    Route::get('/view-contact/{id}', function () {
+
+        return "Premium Feature";
+
+    });
+
+});
+
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/plans', [SubscriptionController::class, 'plans'])
+        ->name('plans');
+
+    Route::get('/checkout/{id}', [SubscriptionController::class, 'checkout'])
+        ->name('checkout');
+
+    Route::get('/subscription-success', [SubscriptionController::class, 'success'])
+        ->name('subscription.success');
+
+    Route::delete('/subscription-cancel', [SubscriptionController::class, 'cancel'])
+        ->name('subscription.cancel');
+
+    Route::post('/free-plan/{plan}', [SubscriptionController::class, 'activateFreePlan'])
+        ->name('free.subscribe');
+
+    Route::get('/upgrade-preview/{id}', [SubscriptionController::class, 'upgradePreview'])
+        ->name('plan.upgrade');
+
+    Route::get(
+        '/subscription/refund-preview',
+        [SubscriptionController::class, 'getRefundPreview']
+    )->name('subscription.refund.preview');
+});
+
+Route::middleware('auth')->group(function () {
+
+    Route::post('/rating/store', [RatingController::class, 'store'])
+        ->name('rating.store');
+
+    Route::post('/rating/skip', [RatingController::class, 'skip'])
+        ->name('rating.skip');
+
+    Route::post('/rating/cancel', [RatingController::class, 'cancel'])
+        ->name('rating.cancel');
+
+});
+
+
 
 Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/settings/display', [AdminSettingController::class, 'index'])
@@ -27,6 +139,16 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         ->name('admin.settings.update');
 
     Route::post('/upload', [AdminSettingController::class, 'handleUpload'])->name('upload.handle');
+
+    Route::get(
+        '/admin/payments',
+        [PaymentManagementController::class, 'index']
+    )->name('admin.payments');
+
+    Route::post(
+        '/admin/subscription/cancel/{id}',
+        [SubscriptionManagementController::class, 'cancel']
+    )->name('admin.subscription.cancel');
 });
 
 
@@ -38,6 +160,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         '/verifications',
         [AdminVerificationController::class, 'index']
     )->name('admin.verifications');
+
+    Route::post(
+        '/admin/user/{id}/ban',
+        [UserController::class, 'ban']
+    )->name('admin.user.ban');
+
+    Route::post(
+        '/admin/user/{id}/unban',
+        [UserController::class, 'unban']
+    )->name('admin.user.unban');
+
+    Route::get(
+        '/admin/subscriptions',
+        [SubscriptionManagementController::class, 'index']
+    )->name('admin.subscriptions');
 
     Route::get('/reports', [ReportsController::class, 'index'])
         ->name('admin.reports');
@@ -154,18 +291,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/search', [ProfileController::class, 'search'])->name('profile.search');
     Route::get('/index', [ProfileController::class, 'index'])->name('profile.index');
     Route::post('/profile/change-activation', [ProfileController::class, 'changeActivation'])->name('profile.changeactivation');
-    Route::get('/show/{id}', [ProfileController::class, 'show'])->name('user.show');
+    Route::get('/show/{id}/{page}', [ProfileController::class, 'show'])->name('user.show');
     Route::get('/my-profile', [ProfileController::class, 'myProfile'])->name('profile.myprofile');
     Route::post('/save-result', [FilterController::class, 'saveresult'])->name('filter.save');
+    Route::patch('/filter/{filter}/remove/{field}', [FilterController::class, 'removeField'])
+        ->name('filter.removeField');
     Route::get('/profile/delete', [ProfileController::class, 'deleteform'])->name('profile.deleteform');
     Route::get('/profile/{id}/report', [ReportController::class, 'create'])->name('profile.report');
     Route::post('/profile/{id}/report', [ReportController::class, 'store'])->name('profile.report.store');
     Route::get('/get-states/{country}', [ProfileController::class, 'getStates']);
     Route::get('/get-cities/{state}', [ProfileController::class, 'getCities']);
     Route::get('/submit', [ProfileController::class, 'submit'])->name('submit');
-    Route::delete('/filter/{id}/delete', [ProfileController::class, 'destroy'])->name('filter.destroy');
     Route::delete('/filter/{id}/soft-delete', [ProfileController::class, 'softDeleteFilter'])
-    ->name('filter.softDelete');
+        ->name('filter.softDelete');
+
+
+    Route::get('/submit', [ProfileController::class, 'submit'])->name('submit');
+    Route::get('/about-us', [DashboardController::class, 'about'])->name('about');
+
+    Route::get('/testimonial/create', [TestimonialController::class, 'create'])->name('testimonial.create');
+
+    Route::post('/testimonial/store', [TestimonialController::class, 'store'])->name('testimonial.store');
+
 
     // Restore a soft-deleted filter
     Route::post('/filter/{id}/restore', [ProfileController::class, 'restore'])->name('filter.restore');

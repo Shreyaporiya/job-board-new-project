@@ -1,7 +1,4 @@
-<x-guest-layout>
-
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+@component('layouts.guest-layout')
 
     <style>
         /* Page Background Gradient */
@@ -171,6 +168,16 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="fw-semibold text-dark">Contact Number</label>
+                        <input type="text" name="contact_number" class="form-control @error('contact_number') is-invalid @enderror"
+                            value="{{ old('contact_number') }}">
+                        @error('contact_number')
+                            <div class="invalid-feedback fw-bold">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="mb-3">
                         <label class="fw-semibold text-dark">Gender</label>
                         <div class="d-flex gap-3 pt-1 flex-wrap">
                             @foreach(['Female', 'Male'] as $status)
@@ -187,7 +194,6 @@
                             <div class="invalid-feedback d-block fw-bold">{{ $message }}</div>
                         @enderror
                     </div>
-
 
                     <!-- Password -->
                     <div class="mb-3">
@@ -223,4 +229,4 @@
 
     </div>
 
-</x-guest-layout>
+@endcomponent

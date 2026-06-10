@@ -117,40 +117,120 @@
             <!-- ===================== PROFILES GRID ===================== -->
             <div class="col-lg-9 mt-4 mt-lg-0">
 
-                <!-- ================= SUGGESTED FILTER BADGES ================= -->
                 {{-- ================= SAVED FILTER BADGES ================= --}}
-                @if($myFilters && $myFilters->count())
+                @if($myFilters->count())
                     <div class="mb-4 d-flex flex-wrap gap-2">
 
-                        @php $printed = []; @endphp
-
                         @foreach($myFilters as $filter)
-                            @foreach($filter->getAttributes() as $key => $value)
 
-                                @continue(in_array($key, ['id', 'profile_id', 'created_at', 'updated_at', 'deleted_at']))
-                                @continue(empty($value))
-
-                                @php
-                                    $identifier = $key . '|' . $value;
-                                    if (in_array($identifier, $printed))
-                                        continue;
-                                    $printed[] = $identifier;
-                                @endphp
-
-                                <span class="badge filter_badge d-inline-flex align-items-center gap-1">
-                                    {{ ucfirst(str_replace('_', ' ', $key)) }}: {{ $value }}
-                                    <form action="{{ route('filter.softDelete', $filter->id) }}" method="POST" class="ms-1 d-inline">
+                            {{-- AGE --}}
+                            @if($filter->age_from !== null)
+                                <span class="badge filter_badge">
+                                    Age-min: {{ $filter->age_from }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'age']) }}"
+                                        class="d-inline">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-close btn-sm"></button>
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
                                     </form>
                                 </span>
+                            @endif
 
-                            @endforeach
+                            @if($filter->age_to !== null)
+                                <span class="badge filter_badge">
+                                    Age-max: {{ $filter->age_to }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'age']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
+                            {{-- GENDER --}}
+                            @if($filter->gender)
+                                <span class="badge filter_badge">
+                                    Gender: {{ $filter->gender }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'gender']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
+                            {{-- MARITAL STATUS --}}
+                            @if($filter->marital_status)
+                                <span class="badge filter_badge">
+                                    Marital: {{ ucfirst($filter->marital_status) }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'marital_status']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
+                            {{-- RELIGION --}}
+                            @if($filter->religion)
+                                <span class="badge filter_badge">
+                                    Religion: {{ $filter->religion }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'religion']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
+                            {{-- COMMUNITY --}}
+                            @if($filter->community)
+                                <span class="badge filter_badge">
+                                    Community: {{ $filter->community }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'community']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
+                            {{-- PROFESSION --}}
+                            @if($filter->profession)
+                                <span class="badge filter_badge">
+                                    Profession: {{ $filter->profession }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'profession']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
+                            {{-- LOCATION --}}
+                            @if($filter->country)
+                                <span class="badge filter_badge">
+                                    {{ $filter->country }} {{ $filter->state }} {{ $filter->city }}
+                                    <form method="POST" action="{{ route('filter.removeField', [$filter->id, 'country']) }}"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-close btn-sm ps-2" style="font-size: 13px;"></button>
+                                    </form>
+                                </span>
+                            @endif
+
                         @endforeach
 
                     </div>
                 @endif
+
 
 
 
@@ -164,7 +244,7 @@
                                     <div class="profile-card-modern">
                                         <div class="profile-img-wrapper">
                                             <img src="{{ $profile->images->first()
-                        ? asset($profile->images->first()->file_path)
+                        ? Storage::url($profile->images->first()->file_path)
                         : 'https://via.placeholder.com/300' }}" class="w-100">
 
                                             @if($profile->is_premium)
@@ -181,7 +261,8 @@
                                                 <span>{{ $profile->community }}</span>
                                             </div>
 
-                                            <a href="{{ route('user.show', $profile->id) }}" class="btn btn-view-modern">
+                                            <a href="{{ route('user.show', ['id' => $profile->id, 'page' => 'index']) }}"
+                                                class="btn btn-view-modern">
                                                 View Profile
                                             </a>
                                         </div>
@@ -192,10 +273,10 @@
                             <h4 class="text-muted">No profiles found.</h4>
                         </div>
                     @endforelse
-
                 </div>
-            </div>
 
+                <!--  -->
+            </div>
         </div>
     </div>
 
@@ -222,6 +303,20 @@
                 window.location.href = url.toString();
             }
         }
+    </script>
+    <script>
+        window.ratingData = {
+            status: @json($rating_status)
+        };
+    </script>
+
+    <script>
+        window.flashData = {
+            success: @json(session('success')),
+            error: @json(session('error')),
+            warning: @json(session('warning')),
+            info: @json(session('info')),
+        };
     </script>
 
 @endsection

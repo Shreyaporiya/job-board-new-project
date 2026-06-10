@@ -12,6 +12,7 @@
         "alpinejs": "^3.15.4",
         "autoprefixer": "^10.4.22",
         "axios": "^1.13.2",
+        "baseline-browser-mapping": "^2.9.19",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.1",
         "postcss": "^8.5.6",
@@ -19,6 +20,7 @@
         "vite": "^7.2.6"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.2.0",
         "animate.css": "^4.1.1",
         "aos": "^2.3.4",
         "bootstrap": "^5.3.8",
@@ -26,6 +28,7 @@
         "chart.js": "^4.5.1",
         "jquery": "^4.0.0",
         "select2": "^4.1.0-rc.0",
+        "sweetalert2": "^11.26.17",
         "tom-select": "^2.4.3"
     }
 }

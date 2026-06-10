@@ -2,22 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\SendSubscriptionReminder;
-use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
-    public function sendReminders()
+    public function checkout(Request $request)
     {
-        $tomorrow = Carbon::tomorrow();
+        $priceId = $request->price_id;
 
-        $users = User::whereDate('subscription_end_date', $tomorrow)->get();
+        return $request->user()
+            ->newSubscription('default', $priceId)
+            ->checkout([
+                'success_url' => route('subscription.success'),
+                'cancel_url' => route('subscription.cancel'),
+            ]);
+    }
 
-        foreach ($users as $user) {
-            SendSubscriptionReminder::dispatch($user);
-        }
+    public function success()
+    {
+        return view('subscription-success');
+    }
 
-        return "Subscription reminders added to queue!";
+    public function cancel()
+    {
+        return view('subscription-cancel');
     }
 }

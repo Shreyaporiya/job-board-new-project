@@ -20,6 +20,40 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+
+            <a class="navbar-brand" href="/">
+                Matrimonial Site
+            </a>
+
+            <a class="nav-link text-white" href="/profiles">
+                Browse Profiles
+            </a>
+
+            <div>
+
+                @auth
+
+                    @if(auth()->user()->subscribed('default'))
+
+                        <span class="badge bg-success">
+                            Premium Member
+                        </span>
+
+                    @else
+
+                        <a href="/subscription" class="btn btn-warning">
+                            Buy Membership
+                        </a>
+
+                    @endif
+
+                @endauth
+
+            </div>
+        </div>
+    </nav>
 
     <!-- Header -->
 

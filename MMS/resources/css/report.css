@@ -1,15 +1,10 @@
-/* ===============================
-   GLOBAL PAGE STYLE
-================================ */
+/* GLOBAL PAGE STYLE */
 
 body {
     background-color: #ffffff;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ===============================
-   PAGE HEADER
-================================ */
+/* PAGE HEADER */
 
 .report-title {
     font-size: 2rem;
@@ -24,9 +19,7 @@ body {
     animation: fadeIn 1s ease;
 }
 
-/* ===============================
-   CARD DESIGN
-================================ */
+/* CARD DESIGN */
 
 .report-card {
     background: #ffffff;
@@ -36,9 +29,7 @@ body {
     animation: cardFadeUp 0.8s ease;
 }
 
-/* ===============================
-   FORM ELEMENTS
-================================ */
+/* FORM ELEMENTS */
 
 .report-card label {
     color: #343a40;
@@ -66,9 +57,7 @@ body {
     box-shadow: 0 0 0 0.15rem rgba(255, 65, 108, 0.25);
 }
 
-/* ===============================
-   BUTTONS
-================================ */
+/* BUTTONS */
 
 .btn-report {
     background: linear-gradient(45deg, #ff4b2b, #ff416c);
@@ -97,17 +86,13 @@ body {
     background: #e9ecef;
 }
 
-/* ===============================
-   ALERT
-================================ */
+/* ALERT */
 
 .alert {
     border-radius: 0.75rem;
 }
 
-/* ===============================
-   ANIMATIONS
-================================ */
+/* ANIMATIONS */
 
 @keyframes fadeIn {
     from {
@@ -140,9 +125,7 @@ body {
     }
 }
 
-/* ===============================
-   RESPONSIVE
-================================ */
+/* RESPONSIVE */
 
 @media (max-width: 576px) {
     .report-title {

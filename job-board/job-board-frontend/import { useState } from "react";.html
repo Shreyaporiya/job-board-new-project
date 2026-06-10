@@ -1,0 +1,3203 @@
+import { useState } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import { useNavigate } from "react-router-dom";
+import "../css/Profile.css";
+
+const GET_ME = gql`
+  query {
+    me {
+      id
+      name
+      email
+      jobs {
+        id
+        title
+        company
+        description
+        location
+        salary
+        skills
+        responsibilities
+        job_type
+      }
+    }
+  }
+`;
+
+const UPDATE_PROFILE = gql`
+  mutation UpdateProfile($name: String!, $email: String!) {
+    updateProfile(name: $name, email: $email) {
+      id
+      name
+      email
+    }
+  }
+`;
+
+const DELETE_PROFILE = gql`
+  mutation {
+    deleteProfile
+  }
+`;
+
+const UPDATE_JOB = gql`
+  mutation UpdateJob(
+    $id: ID!
+    $title: String!
+    $company: String!
+    $description: String!
+    $location: String!
+    $salary: String!
+    $skills: [String!]!
+    $responsibilities: [String!]!
+    $job_type: String!
+  ) {
+    updateJob(
+      id: $id
+      title: $title
+      company: $company
+      description: $description
+      location: $location
+      salary: $salary
+      skills: $skills
+      responsibilities: $responsibilities
+      job_type: $job_type
+    ) {
+      id
+      title
+    }
+  }
+`;
+
+const DELETE_JOB = gql`
+  mutation DeleteJob($id: ID!) {
+    deleteJob(id: $id)
+  }
+`;
+
+export default function Profile() {
+    const navigate = useNavigate();
+
+    const { data, loading, refetch } = useQuery(GET_ME);
+
+    const [updateProfile] = useMutation(UPDATE_PROFILE);
+    const [deleteProfile] = useMutation(DELETE_PROFILE);
+    const [updateJob] = useMutation(UPDATE_JOB);
+    const [deleteJob] = useMutation(DELETE_JOB);
+
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [editingJob, setEditingJob] = useState(null);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showAccountDeleteConfirm, setShowAccountDeleteConfirm] = useState(false);
+    const [jobToDelete, setJobToDelete] = useState(null);
+    // const [accountToDelete, setAccountToDelete] = useState(null);
+
+    const [notification, setNotification] = useState({
+        show: false,
+        type: "",
+        message: "",
+    });
+
+    const [jobForm, setJobForm] = useState({
+        title: "",
+        company: "",
+        description: "",
+        location: "",
+        salary: "",
+        skills: "",
+        responsibilities: "",
+        job_type: "FULL_TIME",
+    });
+
+    const showNotification = (type, message) => {
+        setNotification({ show: true, type, message });
+        setTimeout(() => {
+            setNotification({ show: false, type: "", message: "" });
+        }, 5000);
+    };
+
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Loading profile...</p>
+            </div>
+        );
+    }
+
+    if (!data || !data.me) {
+        return (
+            <div className="loading-container">
+                <p>No user data found. Please login again.</p>
+                <button onClick={() => navigate("/login")}>
+                    Go to Login
+                </button>
+            </div>
+        );
+    }
+
+    const user = data.me;
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        try {
+            await updateProfile({ variables: { name, email } });
+            showNotification("success", "Profile updated successfully!");
+            setIsEditingProfile(false);
+            refetch();
+            setName("");
+            setEmail("");
+        } catch (err) {
+            showNotification("error", err.message);
+        }
+    };
+
+    const handleDeleteProfile = async () => {
+        try {
+            await deleteProfile();
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+
+            showNotification(
+                "success",
+                "Profile deleted successfully"
+            );
+
+            setShowAccountDeleteConfirm(false);
+
+            setTimeout(() => navigate("/login"), 1500);
+        } catch (err) {
+            showNotification("error", err.message);
+        }
+    };
+
+    const handleViewJob = (job) => {
+        setSelectedJob(job);
+        setShowViewModal(true);
+    };
+
+    const handleEditJob = (job) => {
+        setEditingJob(job);
+        setJobForm({
+            title: job.title,
+            company: job.company,
+            description: job.description,
+            location: job.location,
+            salary: job.salary,
+            skills: job.skills?.join(", ") || "",
+            responsibilities: job.responsibilities?.join(", ") || "",
+            job_type: job.job_type,
+        });
+        setShowEditModal(true);
+    };
+
+    const handleUpdateJob = async (e) => {
+        e.preventDefault();
+        try {
+            await updateJob({
+                variables: {
+                    id: editingJob.id,
+                    title: jobForm.title,
+                    company: jobForm.company,
+                    description: jobForm.description,
+                    location: jobForm.location,
+                    salary: jobForm.salary,
+                    skills: jobForm.skills.split(",").map((s) => s.trim()),
+                    responsibilities: jobForm.responsibilities
+                        .split(",")
+                        .map((r) => r.trim()),
+                    job_type: jobForm.job_type,
+                },
+            });
+            showNotification("success", "Job updated successfully!");
+            setShowEditModal(false);
+            setEditingJob(null);
+            refetch();
+        } catch (err) {
+            showNotification("error", err.message);
+        }
+    };
+
+    const handleDeleteJob = async () => {
+        try {
+            await deleteJob({ variables: { id: jobToDelete.id } });
+            showNotification("success", "Job deleted successfully!");
+            setShowDeleteConfirm(false);
+            setJobToDelete(null);
+            refetch();
+        } catch (err) {
+            showNotification("error", err.message);
+        }
+    };
+
+    return (
+        <div className="profile-container">
+            {/* Toast Notification */}
+            {notification.show && (
+                <div className={`toast-notification ${notification.type}`}>
+                    <div className="toast-content">
+                        <span className="toast-message">{notification.message}</span>
+                        <button
+                            className="toast-close"
+                            onClick={() =>
+                                setNotification({ show: false, type: "", message: "" })
+                            }
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div className="toast-progress-bar"></div>
+                </div>
+            )}
+
+            <div className="content-wrapper">
+                {/* PROFILE SECTION - REDESIGNED */}
+                <div className="profile-section-new">
+                    <div className="profile-header-new">
+                        <div className="profile-avatar-new">
+                            <div className="avatar-initials">
+                                {user.name?.charAt(0).toUpperCase() || "U"}
+                                {user.name?.charAt(1)?.toUpperCase() || ""}
+                            </div>
+                        </div>
+                        <div className="profile-info-new">
+                            <h2>{user.name}</h2>
+                            <p>{user.email}</p>
+                        </div>
+                    </div>
+
+                    <div className="profile-stats-new">
+                        <div className="stat-item">
+                            <span className="stat-value">{user.jobs?.length || 0}</span>
+                            <span className="stat-label">Jobs Posted</span>
+                        </div>
+                    </div>
+
+                    <div className="profile-actions-new">
+                        <button
+                            className="edit-profile-btn"
+                            onClick={() => {
+                                setName(user.name);
+                                setEmail(user.email);
+                                setIsEditingProfile(true);
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" />
+                            </svg>
+                            Edit Profile
+                        </button>
+                        <button
+                            className="delete-profile-btn"
+                            onClick={() => setShowAccountDeleteConfirm(true)}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+
+                {/* EDIT PROFILE MODAL */}
+                {isEditingProfile && (
+                    <div className="modal-overlay" onClick={() => setIsEditingProfile(false)}>
+                        <div className="edit-profile-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="edit-modal-header">
+                                <h3>Account Information</h3>
+                                <button className="close-modal" onClick={() => setIsEditingProfile(false)}>✕</button>
+                            </div>
+                            <form onSubmit={handleUpdateProfile} className="edit-profile-form">
+                                <div className="form-group">
+                                    <label>Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Email Address</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <p className="form-note">
+                                    Your account is secure. Update your information anytime.
+                                </p>
+                                <div className="modal-buttons">
+                                    <button
+                                        type="button"
+                                        className="cancel-btn"
+                                        onClick={() => setIsEditingProfile(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="save-btn">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* JOBS SECTION - UNCHANGED */}
+                <div className="jobs-section-modern">
+                    <div className="jobs-header-modern">
+                        <div className="header-title">
+                            <i className="fas fa-briefcase"></i>
+                            <h2>My Posted Jobs</h2>
+                        </div>
+                        <p className="jobs-subtitle">Manage and track your job listings</p>
+                        <button onClick={() => navigate("/add-job")} className="post-job-btn-modern">
+                            <i className="fas fa-plus"></i> Post New Job
+                        </button>
+                    </div>
+
+                    {!user.jobs || user.jobs.length === 0 ? (
+                        <div className="empty-state-modern">
+                            <div className="empty-animation">📭</div>
+                            <h3>No Jobs Posted Yet</h3>
+                            <p>Start your journey by posting your first job opportunity!</p>
+                        </div>
+                    ) : (
+                        <div className="jobs-grid-modern">
+                            {user.jobs.map((job) => (
+                                <div key={job.id} className="job-card-modern">
+                                    <div className="card-gradient-bar"></div>
+                                    <div className="card-content">
+                                        <div className="card-header-modern">
+                                            <div className="job-icon-modern">
+                                                <i className="fas fa-briefcase"></i>
+                                            </div>
+                                            <div className="job-title-modern">
+                                                <h3>{job.title}</h3>
+                                                <span className="company-name-modern">
+                                                    <i className="fas fa-building"></i> {job.company}
+                                                </span>
+                                            </div>
+                                            <span className="job-type-badge-modern">{job.job_type}</span>
+                                        </div>
+
+                                        <div className="job-details-modern">
+                                            <div className="detail-chip">
+                                                <i className="fas fa-map-marker-alt"></i>
+                                                <span>{job.location}</span>
+                                            </div>
+                                            <div className="detail-chip">
+                                                <i className="fas fa-rupee-sign"></i>
+                                                <span>₹{job.salary}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="card-actions-modern">
+                                            <button
+                                                className="action-btn view-btn"
+                                                onClick={() => handleViewJob(job)}
+                                            >
+                                                <i className="fas fa-eye"></i> View
+                                            </button>
+                                            <button
+                                                className="action-btn edit-btn"
+                                                onClick={() => handleEditJob(job)}
+                                            >
+                                                <i className="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button
+                                                className="action-btn delete-btn"
+                                                onClick={() => {
+                                                    setJobToDelete(job);
+                                                    setShowDeleteConfirm(true);
+                                                }}
+                                            >
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* View Job Modal */}
+            {showViewModal && selectedJob && (
+                <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
+                    <div className="job-details-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close-btn" onClick={() => setShowViewModal(false)}>
+                            ✕
+                        </button>
+                        <div className="modal-header">
+                            <div className="modal-job-icon">
+                                <i className="fas fa-briefcase"></i>
+                            </div>
+                            <div className="modal-job-title">
+                                <h2>{selectedJob.title}</h2>
+                                <div className="modal-company">
+                                    <i className="fas fa-building"></i> {selectedJob.company}
+                                    <span className="modal-job-badge">{selectedJob.job_type}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-body">
+                            <div className="details-grid">
+                                <div className="detail-card">
+                                    <div className="detail-icon">
+                                        <i className="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div className="detail-info">
+                                        <label>Location</label>
+                                        <p>{selectedJob.location}</p>
+                                    </div>
+                                </div>
+                                <div className="detail-card">
+                                    <div className="detail-icon">
+                                        <i className="fas fa-rupee-sign"></i>
+                                    </div>
+                                    <div className="detail-info">
+                                        <label>Salary</label>
+                                        <p>₹{selectedJob.salary}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="modal-section">
+                                <h3>
+                                    <i className="fas fa-align-left"></i> Description
+                                </h3>
+                                <p className="description-content">{selectedJob.description}</p>
+                            </div>
+                            <div className="modal-section">
+                                <h3>
+                                    <i className="fas fa-code"></i> Required Skills
+                                </h3>
+                                <div className="skills-container">
+                                    {selectedJob.skills?.map((skill, idx) => (
+                                        <span key={idx} className="skill-badge">
+                                            {skill}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="modal-section">
+                                <h3>
+                                    <i className="fas fa-tasks"></i> Responsibilities
+                                </h3>
+                                <ul className="responsibilities-list">
+                                    {selectedJob.responsibilities?.map((resp, idx) => (
+                                        <li key={idx}>
+                                            <i className="fas fa-check-circle"></i> {resp}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                className="modal-edit-btn"
+                                onClick={() => {
+                                    setShowViewModal(false);
+                                    handleEditJob(selectedJob);
+                                }}
+                            >
+                                <i className="fas fa-edit"></i> Edit Job
+                            </button>
+                            <button
+                                className="modal-delete-btn"
+                                onClick={() => {
+                                    setShowViewModal(false);
+                                    setJobToDelete(selectedJob);
+                                    setShowDeleteConfirm(true);
+                                }}
+                            >
+                                <i className="fas fa-trash"></i> Delete Job
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Job Modal */}
+            {showEditModal && editingJob && (
+                <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+                    <div className="edit-job-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="edit-modal-header">
+                            <div className="edit-modal-icon">
+                                <i className="fas fa-edit"></i>
+                            </div>
+                            <h2>Edit Job</h2>
+                            <p>Update your job listing details</p>
+                        </div>
+                        <form onSubmit={handleUpdateJob} className="edit-job-form">
+                            <div className="form-row">
+                                <div className="form-field">
+                                    <label>Job Title *</label>
+                                    <input
+                                        type="text"
+                                        value={jobForm.title}
+                                        onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-field">
+                                    <label>Company *</label>
+                                    <input
+                                        type="text"
+                                        value={jobForm.company}
+                                        onChange={(e) => setJobForm({ ...jobForm, company: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-field">
+                                    <label>Location *</label>
+                                    <input
+                                        type="text"
+                                        value={jobForm.location}
+                                        onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-field">
+                                    <label>Salary *</label>
+                                    <input
+                                        type="text"
+                                        value={jobForm.salary}
+                                        onChange={(e) => setJobForm({ ...jobForm, salary: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-field">
+                                    <label>Job Type *</label>
+                                    <select
+                                        value={jobForm.job_type}
+                                        onChange={(e) => setJobForm({ ...jobForm, job_type: e.target.value })}
+                                    >
+                                        <option value="FULL_TIME">Full Time</option>
+                                        <option value="PART_TIME">Part Time</option>
+                                        <option value="CONTRACT">Contract</option>
+                                        <option value="INTERNSHIP">Internship</option>
+                                        <option value="REMOTE">Remote</option>
+                                    </select>
+                                </div>
+                                <div className="form-field">
+                                    <label>Skills (comma separated)</label>
+                                    <input
+                                        type="text"
+                                        value={jobForm.skills}
+                                        onChange={(e) => setJobForm({ ...jobForm, skills: e.target.value })}
+                                        placeholder="React, Node.js, MongoDB"
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-field">
+                                <label>Responsibilities (comma separated)</label>
+                                <textarea
+                                    rows="3"
+                                    value={jobForm.responsibilities}
+                                    onChange={(e) => setJobForm({ ...jobForm, responsibilities: e.target.value })}
+                                    placeholder="Develop features, Write tests, Deploy applications"
+                                />
+                            </div>
+                            <div className="form-field">
+                                <label>Description *</label>
+                                <textarea
+                                    rows="4"
+                                    value={jobForm.description}
+                                    onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="edit-modal-actions">
+                                <button
+                                    type="button"
+                                    className="cancel-edit-modal"
+                                    onClick={() => setShowEditModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button type="submit" className="save-edit-modal">
+                                    <i className="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && jobToDelete && (
+                <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+                    <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                            </svg>
+                        </div>
+                        <h3>Delete Job</h3>
+                        <p>
+                            Are you sure you want to delete <strong>"{jobToDelete.title}"</strong>? <br />
+                            This action cannot be undone.
+                        </p>
+                        <div className="modal-buttons">
+                            <button className="modal-cancel" onClick={() => setShowDeleteConfirm(false)}>
+                                Cancel
+                            </button>
+                            <button className="modal-confirm" onClick={handleDeleteJob}>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Account Delete Confirmation Modal */}
+
+            {/* Account Delete Confirmation Modal */}
+            {showAccountDeleteConfirm && (
+                <div
+                    className="modal-overlay"
+                    onClick={() => setShowAccountDeleteConfirm(false)}
+                >
+                    <div
+                        className="delete-modal"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="modal-icon danger-icon">
+                            <svg
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                            </svg>
+                        </div>
+
+                        <h3>Delete Account</h3>
+
+                        <p>
+                            Are you sure you want to permanently delete
+                            your account?
+                            <br />
+                            <strong>This action cannot be undone.</strong>
+                        </p>
+
+                        <div className="modal-buttons">
+                            <button
+                                className="modal-cancel"
+                                onClick={() =>
+                                    setShowAccountDeleteConfirm(false)
+                                }
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="modal-confirm"
+                                onClick={handleDeleteProfile}
+                            >
+                                Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+
+
+
+
+/* Profile Container */
+.profile-container {
+    min-height: 100vh;
+    background: #f5f7fb;
+    position: relative;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+/* ========== PROFILE SECTION - REDESIGNED ========== */
+.profile-section-new {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eef2f6;
+}
+
+.profile-header-new {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.profile-avatar-new {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.avatar-initials {
+    font-size: 32px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.profile-info-new h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1f36;
+    margin: 0 0 6px 0;
+}
+
+.profile-info-new p {
+    font-size: 15px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.profile-stats-new {
+    display: flex;
+    gap: 32px;
+    padding: 20px 0;
+    border-top: 1px solid #eef2f6;
+    border-bottom: 1px solid #eef2f6;
+    margin-bottom: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1f36;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.profile-actions-new {
+    display: flex;
+    gap: 12px;
+}
+
+.edit-profile-btn,
+.delete-profile-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.edit-profile-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.edit-profile-btn:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.delete-profile-btn {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.delete-profile-btn:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+}
+
+/* Edit Profile Modal */
+.edit-profile-modal {
+    background: white;
+    border-radius: 24px;
+    max-width: 480px;
+    width: 90%;
+    animation: modalSlideIn 0.2s ease-out;
+    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.edit-modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: #ef4444;
+}
+
+.edit-profile-form {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #fafbfc;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    background: white;
+}
+
+.form-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 16px 0 24px;
+    padding: 10px 12px;
+    background: #fefce8;
+    border-radius: 10px;
+    border-left: 3px solid #eab308;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.cancel-btn,
+.save-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.cancel-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.cancel-btn:hover {
+    background: #e5e7eb;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+}
+
+.save-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* ========== JOBS SECTION ========== */
+.jobs-section-modern {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eef2f6;
+}
+
+.jobs-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header-title {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.header-title i {
+    font-size: 24px;
+    color: #4f46e5;
+}
+
+.header-title h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin: 0;
+}
+
+.jobs-subtitle {
+    color: #6b7280;
+    font-size: 13px;
+    margin: 0;
+}
+
+.post-job-btn-modern {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.post-job-btn-modern:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Jobs Grid */
+.jobs-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 30px;
+    margin-top: 5%;
+}
+
+.job-card-modern {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.job-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+    border-color: #e2e8f0;
+}
+
+.card-gradient-bar {
+    height: 4px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.card-header-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.job-icon-modern {
+    width: 44px;
+    height: 44px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #4f46e5;
+}
+
+.job-title-modern {
+    flex: 1;
+}
+
+.job-title-modern h3 {
+    margin: 0 0 4px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.company-name-modern {
+    font-size: 15px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.job-type-badge-modern {
+    padding: 4px 10px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.job-details-modern {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.detail-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    margin-top: 10px;
+    color: #4b5563;
+}
+
+.detail-chip i {
+    color: #4f46e5;
+    width: 14px;
+    font-size: 12px;
+}
+
+/* SKILLS PREVIEW ON JOB CARD */
+.job-skills-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.skill-pill {
+    padding: 4px 12px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.skill-pill:hover {
+    background: #eef2ff;
+    transform: translateY(-1px);
+}
+
+.more-skills {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.card-actions-modern {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.view-btn {
+    flex: 2;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+}
+
+.view-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+}
+
+.edit-btn {
+    flex: 1;
+    background: #10b981;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.delete-btn {
+    width: 38px;
+    background: #ef4444;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 60px 40px;
+    background: #fafbfc;
+    border-radius: 20px;
+    border: 1px dashed #e2e8f0;
+}
+
+.empty-animation {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.empty-state-modern h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin-bottom: 8px;
+}
+
+.empty-state-modern p {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Job Details Modal */
+.job-details-modal,
+.edit-job-modal,
+.delete-modal {
+    background: white;
+    border-radius: 24px;
+    max-width: 650px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+.job-details-modal {
+    max-width: 700px;
+}
+
+.modal-close-btn {
+    position: sticky;
+    top: 12px;
+    right: 12px;
+    float: right;
+    width: 34px;
+    height: 34px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    color: #6b7280;
+    margin: 12px;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    transform: rotate(90deg);
+    color: #ef4444;
+}
+
+.modal-header {
+    padding: 24px 28px 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.modal-job-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: white;
+}
+
+.modal-job-title h2 {
+    font-size: 20px;
+    color: #1a1f36;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.modal-company {
+    color: #6b7280;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.modal-job-badge {
+    padding: 4px 10px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.modal-body {
+    padding: 24px 28px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.detail-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #fafbfc;
+    border-radius: 14px;
+    border: 1px solid #eef2f6;
+}
+
+.detail-icon {
+    width: 38px;
+    height: 38px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #4f46e5;
+}
+
+.detail-info label {
+    display: block;
+    font-size: 10px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 2px;
+}
+
+.detail-info p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1f36;
+    margin: 0;
+}
+
+.modal-section {
+    margin-bottom: 24px;
+}
+
+.modal-section h3 {
+    font-size: 16px;
+    color: #1a1f36;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.modal-section h3 i {
+    color: #4f46e5;
+}
+
+.description-content {
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 14px;
+    background: #fafbfc;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid #eef2f6;
+}
+
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-badge {
+    padding: 5px 12px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.responsibilities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.responsibilities-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    color: #4b5563;
+    font-size: 14px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.responsibilities-list li:last-child {
+    border-bottom: none;
+}
+
+.responsibilities-list li i {
+    color: #10b981;
+    font-size: 12px;
+}
+
+.modal-footer {
+    padding: 20px 28px 24px;
+    display: flex;
+    gap: 14px;
+    border-top: 1px solid #eef2f6;
+}
+
+.modal-edit-btn,
+.modal-delete-btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.modal-edit-btn {
+    background: #4f46e5;
+    color: white;
+}
+
+.modal-edit-btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+.modal-delete-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.modal-delete-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Edit Job Modal */
+.edit-job-modal .edit-modal-header {
+    text-align: center;
+    padding: 28px 28px 20px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border-radius: 24px 24px 0 0;
+}
+
+.edit-modal-icon {
+    width: 52px;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 12px;
+}
+
+.edit-modal-header h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.edit-modal-header p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.edit-job-form {
+    padding: 28px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 4px;
+}
+
+.form-field {
+    margin-bottom: 18px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 13px;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: #fafbfc;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    background: white;
+}
+
+.edit-modal-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.cancel-edit-modal,
+.save-edit-modal {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-edit-modal {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.cancel-edit-modal:hover {
+    background: #e5e7eb;
+}
+
+.save-edit-modal {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+}
+
+.save-edit-modal:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Delete Modal */
+.delete-modal {
+    max-width: 400px;
+    text-align: center;
+    padding: 32px;
+}
+
+.delete-modal .modal-icon {
+    width: 56px;
+    height: 56px;
+    background: #fef2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.delete-modal .modal-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #ef4444;
+}
+
+.delete-modal h3 {
+    font-size: 20px;
+    color: #1a1f36;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.delete-modal p {
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.modal-cancel,
+.modal-confirm {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.modal-cancel:hover {
+    background: #e5e7eb;
+}
+
+.modal-confirm {
+    background: #ef4444;
+    color: white;
+}
+
+.modal-confirm:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* ACCOUNT DELETE MODAL */
+.delete-modal {
+    width: 420px;
+    background: white;
+    border-radius: 24px;
+    padding: 35px 30px;
+    text-align: center;
+    position: relative;
+    animation: modalPop 0.3s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.modal-icon {
+    width: 80px;
+    height: 80px;
+    background: #fef2f2;
+    color: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.modal-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+.delete-modal h3 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #111827;
+}
+
+.delete-modal p {
+    color: #6b7280;
+    line-height: 1.7;
+    margin-bottom: 30px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.modal-cancel,
+.modal-confirm {
+    flex: 1;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.modal-cancel {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.modal-cancel:hover {
+    background: #e5e7eb;
+}
+
+.modal-confirm {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.modal-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.25);
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    min-width: 320px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: slideInRight 0.3s ease-out;
+    z-index: 1100;
+}
+
+.toast-notification.success {
+    border-left: 4px solid #10b981;
+}
+
+.toast-notification.error {
+    border-left: 4px solid #ef4444;
+}
+
+.toast-content {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    color: #1a1f36;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #ef4444;
+}
+
+.toast-progress-bar {
+    height: 3px;
+    background: #e5e7eb;
+    animation: progressBar 5s linear forwards;
+}
+
+.toast-notification.success .toast-progress-bar {
+    background: #10b981;
+}
+
+.toast-notification.error .toast-progress-bar {
+    background: #ef4444;
+}
+
+/* Loading State */
+.loading-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fb;
+    color: #1a1f36;
+}
+
+.loading-spinner {
+    width: 45px;
+    height: 45px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #4f46e5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+/* Animations */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes progressBar {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding: 20px 16px;
+    }
+
+    .profile-section-new {
+        padding: 24px;
+    }
+
+    .profile-header-new {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .profile-stats-new {
+        justify-content: center;
+    }
+
+    .profile-actions-new {
+        justify-content: center;
+    }
+
+    .jobs-header-modern {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .jobs-grid-modern {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .modal-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .toast-notification {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        min-width: auto;
+    }
+}
+
+
+
+
+
+
+
+<!-- new -->
+
+/* Profile Container */
+.profile-container {
+    min-height: 100vh;
+    background: #f5f7fb;
+    position: relative;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+/* ========== PROFILE SECTION - REDESIGNED ========== */
+.profile-section-new {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eef2f6;
+}
+
+.profile-header-new {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.profile-avatar-new {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.avatar-initials {
+    font-size: 32px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.profile-info-new h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1f36;
+    margin: 0 0 6px 0;
+}
+
+.profile-info-new p {
+    font-size: 15px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.profile-stats-new {
+    display: flex;
+    gap: 32px;
+    padding: 20px 0;
+    border-top: 1px solid #eef2f6;
+    border-bottom: 1px solid #eef2f6;
+    margin-bottom: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1f36;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.profile-actions-new {
+    display: flex;
+    gap: 12px;
+}
+
+.edit-profile-btn,
+.delete-profile-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.edit-profile-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.edit-profile-btn:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.delete-profile-btn {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.delete-profile-btn:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+}
+
+/* Edit Profile Modal */
+.edit-profile-modal {
+    background: white;
+    border-radius: 24px;
+    max-width: 480px;
+    width: 90%;
+    animation: modalSlideIn 0.2s ease-out;
+    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.edit-modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: #ef4444;
+}
+
+.edit-profile-form {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #fafbfc;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    background: white;
+}
+
+.form-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 16px 0 24px;
+    padding: 10px 12px;
+    background: #fefce8;
+    border-radius: 10px;
+    border-left: 3px solid #eab308;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.cancel-btn,
+.save-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.cancel-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.cancel-btn:hover {
+    background: #e5e7eb;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+}
+
+.save-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* ========== JOBS SECTION ========== */
+.jobs-section-modern {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eef2f6;
+}
+
+.jobs-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header-title {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.header-title i {
+    font-size: 24px;
+    color: #4f46e5;
+}
+
+.header-title h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin: 0;
+}
+
+.jobs-subtitle {
+    color: #6b7280;
+    font-size: 13px;
+    margin: 0;
+}
+
+.post-job-btn-modern {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.post-job-btn-modern:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Jobs Grid */
+.jobs-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 30px;
+    margin-top: 5%;
+}
+
+.job-card-modern {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.job-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+    border-color: #e2e8f0;
+}
+
+.card-gradient-bar {
+    height: 4px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.card-header-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.job-icon-modern {
+    width: 44px;
+    height: 44px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #4f46e5;
+}
+
+.job-title-modern {
+    flex: 1;
+}
+
+.job-title-modern h3 {
+    margin: 0 0 4px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.company-name-modern {
+    font-size: 15px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.job-type-badge-modern {
+    padding: 4px 10px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.job-details-modern {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.detail-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    margin-top: 10px;
+    color: #4b5563;
+}
+
+.detail-chip i {
+    color: #4f46e5;
+    width: 14px;
+    font-size: 12px;
+}
+
+/* SKILLS PREVIEW ON JOB CARD */
+.job-skills-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.skill-pill {
+    padding: 4px 12px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.skill-pill:hover {
+    background: #eef2ff;
+    transform: translateY(-1px);
+}
+
+.more-skills {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.card-actions-modern {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.view-btn {
+    flex: 2;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+}
+
+.view-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+}
+
+.edit-btn {
+    flex: 1;
+    background: #10b981;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.delete-btn {
+    width: 38px;
+    background: #ef4444;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 60px 40px;
+    background: #fafbfc;
+    border-radius: 20px;
+    border: 1px dashed #e2e8f0;
+}
+
+.empty-animation {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.empty-state-modern h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin-bottom: 8px;
+}
+
+.empty-state-modern p {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Job Details Modal */
+.job-details-modal,
+.edit-job-modal,
+.delete-modal {
+    background: white;
+    border-radius: 24px;
+    max-width: 650px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+.job-details-modal {
+    max-width: 700px;
+}
+
+.modal-close-btn {
+    position: sticky;
+    top: 12px;
+    right: 12px;
+    float: right;
+    width: 34px;
+    height: 34px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    color: #6b7280;
+    margin: 12px;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    transform: rotate(90deg);
+    color: #ef4444;
+}
+
+.modal-header {
+    padding: 24px 28px 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.modal-job-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: white;
+}
+
+.modal-job-title h2 {
+    font-size: 20px;
+    color: #1a1f36;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.modal-company {
+    color: #6b7280;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.modal-job-badge {
+    padding: 4px 10px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.modal-body {
+    padding: 24px 28px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.detail-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #fafbfc;
+    border-radius: 14px;
+    border: 1px solid #eef2f6;
+}
+
+.detail-icon {
+    width: 38px;
+    height: 38px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #4f46e5;
+}
+
+.detail-info label {
+    display: block;
+    font-size: 10px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 2px;
+}
+
+.detail-info p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1f36;
+    margin: 0;
+}
+
+.modal-section {
+    margin-bottom: 24px;
+}
+
+.modal-section h3 {
+    font-size: 16px;
+    color: #1a1f36;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.modal-section h3 i {
+    color: #4f46e5;
+}
+
+.description-content {
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 14px;
+    background: #fafbfc;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid #eef2f6;
+}
+
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-badge {
+    padding: 5px 12px;
+    background: #f3f4f6;
+    color: #4f46e5;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.responsibilities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.responsibilities-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    color: #4b5563;
+    font-size: 14px;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.responsibilities-list li:last-child {
+    border-bottom: none;
+}
+
+.responsibilities-list li i {
+    color: #10b981;
+    font-size: 12px;
+}
+
+.modal-footer {
+    padding: 20px 28px 24px;
+    display: flex;
+    gap: 14px;
+    border-top: 1px solid #eef2f6;
+}
+
+.modal-edit-btn,
+.modal-delete-btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.modal-edit-btn {
+    background: #4f46e5;
+    color: white;
+}
+
+.modal-edit-btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+.modal-delete-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.modal-delete-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Edit Job Modal */
+.edit-job-modal .edit-modal-header {
+    text-align: center;
+    padding: 28px 28px 20px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border-radius: 24px 24px 0 0;
+}
+
+.edit-modal-icon {
+    width: 52px;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 12px;
+}
+
+.edit-modal-header h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.edit-modal-header p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.edit-job-form {
+    padding: 28px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 4px;
+}
+
+.form-field {
+    margin-bottom: 18px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 13px;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: #fafbfc;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    background: white;
+}
+
+.edit-modal-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.cancel-edit-modal,
+.save-edit-modal {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-edit-modal {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.cancel-edit-modal:hover {
+    background: #e5e7eb;
+}
+
+.save-edit-modal {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+}
+
+.save-edit-modal:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Delete Modal */
+.delete-modal {
+    max-width: 400px;
+    text-align: center;
+    padding: 32px;
+}
+
+.delete-modal .modal-icon {
+    width: 56px;
+    height: 56px;
+    background: #fef2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.delete-modal .modal-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #ef4444;
+}
+
+.delete-modal h3 {
+    font-size: 20px;
+    color: #1a1f36;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.delete-modal p {
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.modal-cancel,
+.modal-confirm {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.modal-cancel:hover {
+    background: #e5e7eb;
+}
+
+.modal-confirm {
+    background: #ef4444;
+    color: white;
+}
+
+.modal-confirm:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* ACCOUNT DELETE MODAL */
+.delete-modal {
+    width: 420px;
+    background: white;
+    border-radius: 24px;
+    padding: 35px 30px;
+    text-align: center;
+    position: relative;
+    animation: modalPop 0.3s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.modal-icon {
+    width: 80px;
+    height: 80px;
+    background: #fef2f2;
+    color: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.modal-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+.delete-modal h3 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #111827;
+}
+
+.delete-modal p {
+    color: #6b7280;
+    line-height: 1.7;
+    margin-bottom: 30px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.modal-cancel,
+.modal-confirm {
+    flex: 1;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.modal-cancel {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.modal-cancel:hover {
+    background: #e5e7eb;
+}
+
+.modal-confirm {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.modal-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.25);
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    min-width: 320px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: slideInRight 0.3s ease-out;
+    z-index: 1100;
+}
+
+.toast-notification.success {
+    border-left: 4px solid #10b981;
+}
+
+.toast-notification.error {
+    border-left: 4px solid #ef4444;
+}
+
+.toast-content {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    color: #1a1f36;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #ef4444;
+}
+
+.toast-progress-bar {
+    height: 3px;
+    background: #e5e7eb;
+    animation: progressBar 5s linear forwards;
+}
+
+.toast-notification.success .toast-progress-bar {
+    background: #10b981;
+}
+
+.toast-notification.error .toast-progress-bar {
+    background: #ef4444;
+}
+
+/* Loading State */
+.loading-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fb;
+    color: #1a1f36;
+}
+
+.loading-spinner {
+    width: 45px;
+    height: 45px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #4f46e5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+/* Animations */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes progressBar {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding: 20px 16px;
+    }
+
+    .profile-section-new {
+        padding: 24px;
+    }
+
+    .profile-header-new {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .profile-stats-new {
+        justify-content: center;
+    }
+
+    .profile-actions-new {
+        justify-content: center;
+    }
+
+    .jobs-header-modern {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .jobs-grid-modern {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .modal-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .toast-notification {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        min-width: auto;
+    }
+}

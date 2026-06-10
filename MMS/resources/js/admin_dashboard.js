@@ -2,6 +2,69 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { Chart, registerables } from 'chart.js';
 
+// SweetAlert2
+import Swal from 'sweetalert2';
+window.Swal = Swal;
+
+// Handle Laravel flash messages (global)
+document.addEventListener('DOMContentLoaded', () => {
+
+    if (!window.flashData) return;
+
+    const flash = window.flashData;
+
+    if (flash.success) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: flash.success,
+            allowOutsideClick: false,
+            confirmButtonColor: '#3085d6',
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            }
+        });
+    }
+
+    if (flash.error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: flash.error,
+            confirmButtonColor: '#d33',
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            }
+        });
+    }
+
+    if (flash.warning) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: flash.warning,
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            }
+        });
+    }
+
+    if (flash.info) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Info',
+            text: flash.info,
+            didOpen: () => {
+                const confirmBtn = Swal.getConfirmButton();
+                confirmBtn.disabled = false;
+            }
+        });
+    }
+});
+
 Chart.register(...registerables);
 
 document.addEventListener('DOMContentLoaded', () => {

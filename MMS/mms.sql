@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 22, 2026 at 01:46 PM
--- Server version: 8.0.44-0ubuntu0.24.04.1
+-- Generation Time: Feb 23, 2026 at 01:10 PM
+-- Server version: 8.0.45-0ubuntu0.24.04.1
 -- PHP Version: 8.3.6
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -62,6 +62,8 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
+('vivahbandhan-cache-krinavisrolia@gmail.com|127.0.0.1', 'i:2;', 1769863485),
+('vivahbandhan-cache-krinavisrolia@gmail.com|127.0.0.1:timer', 'i:1769863485;', 1769863485),
 ('vivahbandhan-cache-testtest@gmail.com|127.0.0.1', 'i:1;', 1769079564),
 ('vivahbandhan-cache-testtest@gmail.com|127.0.0.1:timer', 'i:1769079564;', 1769079564);
 
@@ -213,21 +215,28 @@ CREATE TABLE `filters` (
   `city` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `marital_status` enum('single','divorced','widow') COLLATE utf8mb4_unicode_ci DEFAULT 'single',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `filters`
 --
 
-INSERT INTO `filters` (`id`, `profile_id`, `age_from`, `age_to`, `gender`, `religion`, `community`, `profession`, `country`, `state`, `city`, `marital_status`, `created_at`, `updated_at`) VALUES
-(9, 13, NULL, NULL, 'Male', 'Hindu', NULL, NULL, NULL, NULL, NULL, 'single', '2025-12-22 07:39:31', '2025-12-22 07:39:31'),
-(11, 13, NULL, NULL, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 08:35:42', '2025-12-22 08:35:42'),
-(12, 13, NULL, NULL, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 08:42:26', '2025-12-22 08:42:26'),
-(13, 13, 22, 30, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 08:43:31', '2025-12-22 08:43:31'),
-(14, 13, 25, NULL, 'Male', NULL, NULL, 'software engineer', NULL, NULL, NULL, 'single', '2025-12-30 06:28:33', '2025-12-30 06:28:33'),
-(15, 28, 26, NULL, NULL, 'Hindu', NULL, NULL, 'India', NULL, NULL, NULL, '2026-01-16 05:45:56', '2026-01-16 05:45:56'),
-(16, 28, NULL, NULL, NULL, 'Hindu', NULL, 'Software Engineer', 'India', NULL, NULL, NULL, '2026-01-16 05:46:42', '2026-01-16 05:46:42');
+INSERT INTO `filters` (`id`, `profile_id`, `age_from`, `age_to`, `gender`, `religion`, `community`, `profession`, `country`, `state`, `city`, `marital_status`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(9, 13, NULL, NULL, 'Male', 'Hindu', NULL, NULL, NULL, NULL, NULL, 'single', '2025-12-22 07:39:31', '2025-12-22 07:39:31', NULL),
+(11, 13, NULL, NULL, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 08:35:42', '2025-12-22 08:35:42', NULL),
+(12, 13, NULL, NULL, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 08:42:26', '2025-12-22 08:42:26', NULL),
+(13, 13, 22, 30, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-22 08:43:31', '2025-12-22 08:43:31', NULL),
+(14, 13, 25, NULL, 'Male', NULL, NULL, 'software engineer', NULL, NULL, NULL, 'single', '2025-12-30 06:28:33', '2025-12-30 06:28:33', NULL),
+(15, 28, 26, NULL, NULL, 'Hindu', NULL, NULL, 'India', NULL, NULL, NULL, '2026-01-16 05:45:56', '2026-01-16 05:45:56', NULL),
+(16, 28, NULL, NULL, NULL, 'Hindu', NULL, 'Software Engineer', 'India', NULL, NULL, NULL, '2026-01-16 05:46:42', '2026-01-16 05:46:42', NULL),
+(18, 34, NULL, NULL, 'Female', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-23 08:12:42', '2026-01-23 08:14:16', '2026-01-23 08:14:16'),
+(19, 34, 25, NULL, 'Female', NULL, NULL, NULL, NULL, NULL, NULL, 'single', '2026-01-26 04:51:15', '2026-01-26 04:51:48', '2026-01-26 04:51:48'),
+(20, 34, NULL, NULL, 'Male', 'Hindu', NULL, NULL, NULL, NULL, NULL, 'single', '2026-01-26 05:14:18', '2026-01-26 05:14:24', NULL),
+(21, 34, 25, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-26 05:16:31', '2026-01-26 05:16:31', NULL),
+(22, 34, NULL, 30, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-26 05:16:45', '2026-01-26 05:16:45', NULL),
+(23, 23, 24, 30, 'Male', 'Hindu', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 07:01:46', '2026-01-28 07:01:46', NULL);
 
 -- --------------------------------------------------------
 
@@ -263,7 +272,8 @@ INSERT INTO `images` (`id`, `user_id`, `profile_id`, `file_name`, `type_of_image
 (46, 1, NULL, '1768306279_logo3.ico', 'favicon', 'storage/admin/favicon/logo3.ico', '2026-01-13 06:41:19', '2026-01-13 06:41:19'),
 (47, 25, 27, '1768476092_3.jpg', 'Profile', 'storage/uploads/profiles/1768476092_3.jpg', '2026-01-15 05:51:32', '2026-01-15 05:51:32'),
 (48, 27, 28, '1768561398_girl.jpeg', 'Profile', 'storage/uploads/profiles/1768561398_girl.jpeg', '2026-01-16 05:33:18', '2026-01-16 05:33:18'),
-(53, 26, 33, '1769088595_girl_profile.jpg', 'Profile', 'storage/uploads/profiles/1769088595_girl_profile.jpg', '2026-01-22 07:59:55', '2026-01-22 07:59:55');
+(54, 28, 34, '1769174874_girl_profile.jpg', 'Profile', 'storage/uploads/profiles/1769174874_girl_profile.jpg', '2026-01-23 07:57:54', '2026-01-23 07:57:54'),
+(57, 29, 37, '1769770469_1.png', 'Profile', 'storage/uploads/profiles/1769770469_1.png', '2026-01-30 05:24:29', '2026-01-30 05:24:29');
 
 -- --------------------------------------------------------
 
@@ -337,7 +347,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (21, '2026_01_13_121525_add_userid_columnin_admin_images_table', 10),
 (22, '2026_01_19_111125_create_countries_table', 11),
 (23, '2026_01_19_111139_create_states_table', 11),
-(24, '2026_01_19_111149_create_cities_table', 11);
+(24, '2026_01_19_111149_create_cities_table', 11),
+(25, '2026_01_23_113542_add_soft_delete_on_filters_table', 12),
+(26, '2026_01_28_101911_create_testimonials_table', 13),
+(27, '2026_01_30_130800_create_ratings_table', 14);
 
 -- --------------------------------------------------------
 
@@ -401,7 +414,7 @@ INSERT INTO `notifications` (`id`, `type`, `notifiable_type`, `notifiable_id`, `
 ('c16b3190-5ff3-4d35-9e7d-7650054a4015', 'App\\Notifications\\UserRequestNotification', 'App\\Models\\User', 17, '{\"message\":\"Ravi Joshi rejected your request \\u274c\",\"request_id\":\"http:\\/\\/localhost:8000\\/requests\\/sent\",\"url\":\"http:\\/\\/localhost:8000\\/requests\"}', NULL, '2026-01-02 06:55:38', '2026-01-02 06:55:38'),
 ('c3a29620-0e9a-4145-a229-781b711195a0', 'App\\Notifications\\UserRequestNotification', 'App\\Models\\User', 18, '{\"message\":\"You have been blocked \\u26d4\",\"request_id\":\"http:\\/\\/localhost:8000\\/dashboard\",\"url\":\"http:\\/\\/localhost:8000\\/requests\"}', '2025-12-26 06:01:03', '2025-12-26 05:58:10', '2025-12-26 06:01:03'),
 ('c44aba87-ac61-4ae4-9b16-a53786e3fd8d', 'App\\Notifications\\ReportNotification', 'App\\Models\\User', 19, '{\"message\":\"Your profile has been banned due to a report.\",\"report_id\":\"1\"}', '2025-12-31 07:36:02', '2025-12-31 07:35:33', '2025-12-31 07:36:02'),
-('c8d1dfc1-4f1f-4659-a6e9-da6a86efa020', 'App\\Notifications\\UserRequestNotification', 'App\\Models\\User', 5, '{\"message\":\"Ravi Joshi accepted your request \\ud83d\\udc96\",\"request_id\":\"http:\\/\\/localhost:8000\\/requests\\/sent\",\"url\":\"http:\\/\\/localhost:8000\\/requests\"}', NULL, '2026-01-02 06:55:34', '2026-01-02 06:55:34'),
+('c8d1dfc1-4f1f-4659-a6e9-da6a86efa020', 'App\\Notifications\\UserRequestNotification', 'App\\Models\\User', 5, '{\"message\":\"Ravi Joshi accepted your request \\ud83d\\udc96\",\"request_id\":\"http:\\/\\/localhost:8000\\/requests\\/sent\",\"url\":\"http:\\/\\/localhost:8000\\/requests\"}', '2026-02-03 07:19:16', '2026-01-02 06:55:34', '2026-02-03 07:19:16'),
 ('c95bb3b5-8255-45d6-9c59-c28c995584ae', 'App\\Notifications\\UserRequestNotification', 'App\\Models\\User', 18, '{\"message\":\"Shreya poriya sent you a request \\ud83d\\udc8c\",\"request_id\":\"http:\\/\\/localhost:8000\\/requests\",\"url\":\"http:\\/\\/localhost:8000\\/requests\"}', '2026-01-09 05:21:06', '2026-01-09 05:19:51', '2026-01-09 05:21:06'),
 ('d093355a-72f7-4447-9b8c-919d6a147344', 'App\\Notifications\\ReportNotification', 'App\\Models\\User', 4, '{\"message\":\"dvklndk;vnmd;sf\",\"report_id\":\"3\"}', '2025-12-31 08:03:39', '2025-12-31 08:03:19', '2025-12-31 08:03:39'),
 ('d94e5387-c418-44ae-85f6-78498ed11d6c', 'App\\Notifications\\ReportNotification', 'App\\Models\\User', 19, '{\"message\":\"Your profile has been banned due to a report.\",\"report_id\":\"1\"}', '2025-12-31 07:36:03', '2025-12-31 07:35:34', '2025-12-31 07:36:03'),
@@ -428,6 +441,13 @@ CREATE TABLE `password_reset_tokens` (
   `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `password_reset_tokens`
+--
+
+INSERT INTO `password_reset_tokens` (`email`, `token`, `created_at`) VALUES
+('testsp@gmail.com', '$2y$12$smP05fru1pGSkIe8i1U3E.xExFF/TJzZUzCw8pdgOaOFsSIe6icw2', '2026-02-03 07:03:05');
 
 -- --------------------------------------------------------
 
@@ -458,7 +478,6 @@ CREATE TABLE `profiles` (
   `id` bigint UNSIGNED NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
   `age` int NOT NULL,
-  `gender` enum('Male','Female','Any') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `religion` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `community` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `marital_status` enum('single','divorced','widow') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'single',
@@ -479,41 +498,47 @@ CREATE TABLE `profiles` (
 -- Dumping data for table `profiles`
 --
 
-INSERT INTO `profiles` (`id`, `user_id`, `age`, `gender`, `religion`, `community`, `marital_status`, `education`, `profession`, `preferences`, `country`, `state`, `city`, `visibility`, `is_active`, `verified_by`, `created_at`, `updated_at`) VALUES
-(2, 5, 24, 'Female', 'Hindu', 'Vaishnav', 'single', '', 'Fasion Desiger', '{\"Cast\": \"Any\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"India\", \"Gujarat\", \"Ahemdabad\"], \"religion\": \"Hindu\", \"profession\": [\"Architecture\"], \"personality\": [\"Simple, family-oriented\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2025-12-04 06:41:03', '2025-12-19 06:33:34'),
-(13, 9, 23, 'Female', 'hindu', 'Patel', 'single', '', 'professor', '{\"Cast\": \"Patel\", \"age_max\": \"32\", \"age_min\": \"25\", \"location\": [\"India,Gujarat\", \"Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Accountant,Family Business\"], \"personality\": [\"Kind,Calm,Family man\"], \"marital_status\": [\"deactive\", \"single\"]}', 'india', 'Gujarat', 'Vadodara', 'public', 1, NULL, '2025-12-11 06:45:12', '2026-01-02 08:32:13'),
-(18, 17, 25, 'Female', 'Jain', 'Sthanakvasi', 'single', '', 'Web Developer', '{\"Cast\": \"Any\", \"age_max\": \"30\", \"age_min\": \"24\", \"location\": [\"India,Gujarat,Ahemdabad\"], \"religion\": \"Hindu\", \"profession\": [\"Architecture\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Ahemdabad', 'public', 1, 1, '2025-12-18 06:11:55', '2025-12-20 05:31:48'),
-(19, 18, 26, 'Male', 'Hindu', 'Vaishnav', 'single', '', 'Software Engineer', '{\"Cast\": \"Vaishnav\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"India,Gujarat\", \"Surat\"], \"religion\": \"Hindu\", \"profession\": [\"Fashion Designer\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'india', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2025-12-18 06:21:19', '2026-01-09 05:19:33'),
-(22, 19, 26, 'Male', 'Hindu', 'Bramhin', 'single', 'B.com,M.com', 'Banker', '{\"Cast\": \"Bramhin\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"India\", \"Maharastra\", \"Mumbai\"], \"religion\": \"Hindu\", \"profession\": [\"Any\"], \"personality\": [\"Soft-spoken\", \"patient\", \"and emotionally supportive\"], \"marital_status\": [\"single\"]}', 'india', 'Maharastra', 'Mumbai', 'public', 1, NULL, '2025-12-19 06:06:59', '2025-12-19 06:06:59'),
-(23, 4, 28, 'Female', 'Christian', 'Protestant', 'single', 'BCA', 'Software Engineer', '{\"Cast\": \"Any\", \"age_max\": \"35\", \"age_min\": \"30\", \"location\": [\"India, Karanatka\", \"Mysuru\"], \"religion\": \"Christian\", \"profession\": [\"Engineer\"], \"personality\": [\"Well-educated and professionally settled, Honest and respectful by nature\"], \"marital_status\": [\"single\"]}', 'India', 'Karnataka', 'Bangluru', 'public', 1, NULL, '2025-12-25 05:51:15', '2025-12-25 06:00:03'),
-(24, 20, 24, 'Female', 'hindu', 'Rajput', 'single', 'B.com,M.com', 'Bank Manager in Bank of Maharastra', '{\"Cast\": \"Rajput\", \"age_max\": \"32\", \"age_min\": \"26\", \"location\": [\"India, Gujarat, Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Banker\"], \"personality\": [\"Well-educated and professionally settled, Honest and respectful by nature\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Rajkot', 'public', 1, 1, '2026-01-06 08:11:50', '2026-01-09 06:21:39'),
-(26, 22, 25, 'Male', 'Hindu', 'Rajput', 'single', 'Msc.IT', 'Software Engineer', '{\"Cast\": \"Rajput\", \"age_max\": \"30\", \"age_min\": \"23\", \"location\": [\"India, Gujarat\", \"Vadodra\"], \"religion\": \"Hindu\", \"profession\": [\"Any\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'india', 'Karnataka', 'Bengaluru', 'public', 1, NULL, '2026-01-08 08:00:05', '2026-01-08 08:01:33'),
-(27, 25, 25, 'Male', 'hindu', 'Rajput', 'single', 'Msc.IT', 'Software Engineer', '{\"Cast\": \"Vaishnav\", \"age_max\": \"25\", \"age_min\": \"22\", \"location\": [\"India, Gujarat, Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Any\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'india', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2026-01-15 05:51:32', '2026-01-15 06:15:24'),
-(28, 27, 22, 'Female', 'Hindu', 'Rajput', 'single', 'MBBS', 'Doctor', '{\"cast\": \"Vaisnav\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"india\", \"Gujarat\", \"Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Doctor\", \"Engginer\"], \"personality\": [\"Well-educated and professionally settled\", \"Honest and respectful by nature\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2026-01-16 05:33:18', '2026-01-16 05:33:18'),
-(33, 26, 24, 'Female', 'Hindu', 'Rajput', 'single', 'MBBS', 'Doctor', '{\"cast\": \"Any\", \"age_max\": \"30\", \"age_min\": \"26\", \"location\": [\"India\", \"Gujarat\", \"Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Doctor\"], \"personality\": [\"Caring\", \"Calm\", \"Supportive\", \"Honest\", \"Romantic\"], \"marital_status\": [\"single\"]}', '1', '1', '8', 'public', 1, NULL, '2026-01-22 07:59:55', '2026-01-22 07:59:55');
+INSERT INTO `profiles` (`id`, `user_id`, `age`, `religion`, `community`, `marital_status`, `education`, `profession`, `preferences`, `country`, `state`, `city`, `visibility`, `is_active`, `verified_by`, `created_at`, `updated_at`) VALUES
+(2, 5, 24, 'Hindu', 'Vaishnav', 'single', '', 'Fasion Desiger', '{\"Cast\": \"Any\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"India\", \"Gujarat\", \"Ahemdabad\"], \"religion\": \"Hindu\", \"profession\": [\"Architecture\"], \"personality\": [\"Simple, family-oriented\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2025-12-04 06:41:03', '2025-12-19 06:33:34'),
+(13, 9, 23, 'hindu', 'Patel', 'single', '', 'professor', '{\"Cast\": \"Patel\", \"age_max\": \"32\", \"age_min\": \"25\", \"location\": [\"India,Gujarat\", \"Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Accountant,Family Business\"], \"personality\": [\"Kind,Calm,Family man\"], \"marital_status\": [\"deactive\", \"single\"]}', 'india', 'Gujarat', 'Vadodara', 'public', 1, NULL, '2025-12-11 06:45:12', '2026-01-02 08:32:13'),
+(18, 17, 25, 'Jain', 'Sthanakvasi', 'single', '', 'Web Developer', '{\"Cast\": \"Any\", \"age_max\": \"30\", \"age_min\": \"24\", \"location\": [\"India,Gujarat,Ahemdabad\"], \"religion\": \"Hindu\", \"profession\": [\"Architecture\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Ahemdabad', 'public', 1, 1, '2025-12-18 06:11:55', '2025-12-20 05:31:48'),
+(19, 18, 26, 'Hindu', 'Vaishnav', 'single', '', 'Software Engineer', '{\"Cast\": \"Vaishnav\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"India,Gujarat\", \"Surat\"], \"religion\": \"Hindu\", \"profession\": [\"Fashion Designer\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'india', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2025-12-18 06:21:19', '2026-01-09 05:19:33'),
+(22, 19, 26, 'Hindu', 'Bramhin', 'single', 'B.com,M.com', 'Banker', '{\"Cast\": \"Bramhin\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"India\", \"Maharastra\", \"Mumbai\"], \"religion\": \"Hindu\", \"profession\": [\"Any\"], \"personality\": [\"Soft-spoken\", \"patient\", \"and emotionally supportive\"], \"marital_status\": [\"single\"]}', 'india', 'Maharastra', 'Mumbai', 'public', 1, NULL, '2025-12-19 06:06:59', '2025-12-19 06:06:59'),
+(23, 4, 28, 'Christian', 'Protestant', 'single', 'BCA', 'Software Engineer', '{\"Cast\": \"Any\", \"age_max\": \"35\", \"age_min\": \"30\", \"location\": [\"India, Karanatka\", \"Mysuru\"], \"religion\": \"Christian\", \"profession\": [\"Engineer\"], \"personality\": [\"Well-educated and professionally settled, Honest and respectful by nature\"], \"marital_status\": [\"single\"]}', 'India', 'Karnataka', 'Bangluru', 'public', 1, NULL, '2025-12-25 05:51:15', '2025-12-25 06:00:03'),
+(24, 20, 24, 'hindu', 'Rajput', 'single', 'B.com,M.com', 'Bank Manager in Bank of Maharastra', '{\"Cast\": \"Rajput\", \"age_max\": \"32\", \"age_min\": \"26\", \"location\": [\"India, Gujarat, Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Banker\"], \"personality\": [\"Well-educated and professionally settled, Honest and respectful by nature\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Rajkot', 'public', 1, 1, '2026-01-06 08:11:50', '2026-01-09 06:21:39'),
+(26, 22, 25, 'Hindu', 'Rajput', 'single', 'Msc.IT', 'Software Engineer', '{\"Cast\": \"Rajput\", \"age_max\": \"30\", \"age_min\": \"23\", \"location\": [\"India, Gujarat\", \"Vadodra\"], \"religion\": \"Hindu\", \"profession\": [\"Any\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'india', 'Karnataka', 'Bengaluru', 'public', 1, NULL, '2026-01-08 08:00:05', '2026-01-08 08:01:33'),
+(27, 25, 25, 'hindu', 'Rajput', 'single', 'Msc.IT', 'Software Engineer', '{\"Cast\": \"Vaishnav\", \"age_max\": \"25\", \"age_min\": \"22\", \"location\": [\"India, Gujarat, Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Any\"], \"personality\": [\"Simple, family-oriented, value-based\"], \"marital_status\": [\"single\"]}', 'india', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2026-01-15 05:51:32', '2026-01-15 06:15:24'),
+(28, 27, 22, 'Hindu', 'Rajput', 'single', 'MBBS', 'Doctor', '{\"cast\": \"Vaisnav\", \"age_max\": \"30\", \"age_min\": \"25\", \"location\": [\"india\", \"Gujarat\", \"Rajkot\"], \"religion\": \"Hindu\", \"profession\": [\"Doctor\", \"Engginer\"], \"personality\": [\"Well-educated and professionally settled\", \"Honest and respectful by nature\"], \"marital_status\": [\"single\"]}', 'India', 'Gujarat', 'Rajkot', 'public', 1, NULL, '2026-01-16 05:33:18', '2026-01-16 05:33:18'),
+(34, 28, 24, 'Hindu', 'Rajput', 'single', 'MBBS', 'Doctor', '{\"cast\": \"Any\", \"age_max\": \"30\", \"age_min\": \"26\", \"location\": [\"USA\", \"Florida\", \"Miami\"], \"religion\": \"Hindu\", \"profession\": [\"Doctor\"], \"personality\": [\"Calm\", \"Caring\", \"Supportive\"], \"marital_status\": [\"single\"]}', '6', '13', '27', 'public', 1, NULL, '2026-01-23 07:57:53', '2026-01-23 07:57:53'),
+(37, 29, 24, 'Muslim', 'Sufi', 'single', 'B.com,M.com', 'Bank manager', '{\"Cast\": null, \"age_max\": \"30\", \"age_min\": \"26\", \"location\": [\"India,Maharashtra,Mumbai\"], \"religion\": \"Muslim\", \"profession\": [\"Developer\"], \"personality\": [\"Caring\", \"Supportive\", \"Romantic\", \"Funny\"], \"marital_status\": [\"single\"]}', '1', '2', '3', 'public', 1, NULL, '2026-01-30 05:24:29', '2026-02-03 06:17:49');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `profile_reports`
+-- Table structure for table `ratings`
 --
 
-CREATE TABLE `profile_reports` (
+CREATE TABLE `ratings` (
   `id` bigint UNSIGNED NOT NULL,
-  `reporter_id` bigint UNSIGNED NOT NULL,
-  `reported_profile_id` bigint UNSIGNED NOT NULL,
-  `reason` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` text COLLATE utf8mb4_unicode_ci,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `rating` tinyint UNSIGNED NOT NULL,
+  `comment` text COLLATE utf8mb4_unicode_ci,
+  `skip` tinyint DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `profile_reports`
+-- Dumping data for table `ratings`
 --
 
-INSERT INTO `profile_reports` (`id`, `reporter_id`, `reported_profile_id`, `reason`, `description`, `created_at`, `updated_at`) VALUES
-(1, 9, 19, 'Fake Profile', 'This profile is fake. I met this guy, thisis  not real, and he is misbehaving with me', '2025-12-30 07:42:34', '2025-12-30 07:42:34');
+INSERT INTO `ratings` (`id`, `user_id`, `rating`, `comment`, `skip`, `created_at`, `updated_at`) VALUES
+(2, 28, 5, NULL, 0, '2026-01-30 13:30:39', '2026-01-30 13:30:39'),
+(3, 17, 5, NULL, 0, '2026-01-31 13:31:09', '2026-01-31 13:31:09'),
+(4, 2, 0, NULL, 1, '2026-02-01 13:31:23', '2026-02-01 13:31:23'),
+(6, 16, 3, NULL, 0, '2026-02-02 07:17:16', '2026-02-02 07:17:16'),
+(7, 29, 4, 'loved the service, will definitely come back', 0, '2026-02-02 07:58:28', '2026-02-03 13:22:19'),
+(9, 5, 0, NULL, 1, '2026-02-03 12:56:35', '2026-02-03 12:56:35');
 
 -- --------------------------------------------------------
 
@@ -563,7 +588,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('BoBPqhfDeQYKHnP6Rykqpki351017j5W4tN85xNM', 26, '127.0.0.1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoidkZKQ2JXRTdPbHd2cVNybHRtUFd2a0p4azNLMDhUSWoxSFZ5RDdPdSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJuZXciO2E6MDp7fXM6Mzoib2xkIjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9wcm9maWxlIjtzOjU6InJvdXRlIjtzOjEyOiJwcm9maWxlLmVkaXQiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyNjt9', 1769089527);
+('YZPpMo4oaFspwbdR2nJRlqfvtzKYI81L8NqQENeu', 29, '127.0.0.1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiclNjbURXR1ZTeXlPeVRJbTd0TmhyMXBXNkFBaGRmdEkzNmZPcllMRSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9kYXNoYm9hcmQiO3M6NToicm91dGUiO3M6OToiZGFzaGJvYXJkIjt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mjk7fQ==', 1770126039);
 
 -- --------------------------------------------------------
 
@@ -614,6 +639,34 @@ INSERT INTO `states` (`id`, `country_id`, `name`, `created_at`, `updated_at`) VA
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `testimonials`
+--
+
+CREATE TABLE `testimonials` (
+  `id` bigint UNSIGNED NOT NULL,
+  `profile_id` bigint UNSIGNED NOT NULL,
+  `couple_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `testimonials`
+--
+
+INSERT INTO `testimonials` (`id`, `profile_id`, `couple_name`, `status`, `message`, `image`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 23, 'Neha & Abhisek', 'Married', 'Our success story is a reminder that love can find you when you least expect it. With patience, trust, and genuine intentions, this platform helped us discover a bond that feels natural and lasting. Today, we look forward to a lifetime of memories together', 'testimonials/mA6vOoDpqrvPc2GRLlFQKFmPBDEPWm8P22xgILv5.jpg', 1, '2026-01-28 05:26:56', '2026-01-28 05:26:56'),
+(2, 13, 'Shradha & Mitul', 'Engaged', 'We joined this platform with hope and patience, and it truly rewarded us. Our conversations felt natural, honest, and respectful from the very beginning. Over time, we discovered shared values, mutual understanding, and a deep connection. Today, we are happily married and grateful for this beautiful journey.', 'testimonials/4qzEwbRU77aJjdJOMJ2zKhmoV7jE55Z2fa8K3RFz.jpg', 1, '2026-01-28 05:46:02', '2026-01-28 05:46:02'),
+(3, 18, 'Ritu & Mayur', 'Married', 'This platform made the journey of finding a life partner simple and meaningful. There was no pressure, only comfort and clarity. From our first conversation to our wedding day, everything felt perfectly aligned. We truly found a partner for life.', 'testimonials/mlXYXQVjVH25N4VKSqXGU62iBPf5yq7kyA5xxXuE.jpg', 1, '2026-01-28 05:47:18', '2026-01-28 05:47:18'),
+(4, 2, 'Kavya & Sandeep', 'Engaged', 'This platform values emotions, trust, and meaningful connections. Our conversations were deep and sincere, leading us to believe we had found the right partner. We are excited to build our future together.', 'testimonials/kSptXYKSckBG5q3K07X7jwpDzkXMRZxie1BWCNKt.jpg', 1, '2026-01-28 05:49:16', '2026-01-28 05:49:16');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -621,6 +674,7 @@ CREATE TABLE `users` (
   `id` bigint UNSIGNED NOT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `gender` enum('Female','Male') COLLATE utf8mb4_unicode_ci NOT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `role` enum('admin','premium','free') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'free',
@@ -636,24 +690,26 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `role`, `plan`, `status`, `remember_token`, `created_at`, `updated_at`, `session_id`) VALUES
-(1, 'Shreya Poriya', 'shreya.p@techxperts.co.in', NULL, '$2y$12$PXyKZgJrItoGSf7ACHtZRu5eRkNOJiXVAIrjI/Klh3PQh6R2Dkfi.', 'admin', 'None', 'None', NULL, '2025-12-02 07:57:07', '2026-01-12 08:13:33', NULL),
-(2, 'Lilah Copeland', 'mopoku@mailinator.com', NULL, '$2y$12$r8paRUfGt9jbyKyrLKpQiuBCHpCHgBx/mdQ4DJspWQUNceQ9UEdMm', 'free', 'None', 'None', NULL, '2025-12-02 08:14:41', '2025-12-02 08:14:41', NULL),
-(4, 'chhaiya', 'testtest95107@gmail.com', NULL, '$2y$12$FxWfg/PgxvZV7k3W5BkgN.HUTAOiKVpG/oIZh7.QuAMpMkTm80jfm', 'free', 'None', 'None', NULL, '2025-12-03 06:28:56', '2026-01-06 06:46:43', NULL),
-(5, 'Priya', 'priyashah@example.com', NULL, '$2y$12$u1QP6XoFFbNUzjQr2EZSgOfwK.HwqV.stQcYCsOw3Yw8fYB9cNA52', 'free', 'None', 'None', NULL, '2025-12-03 08:12:43', '2025-12-03 08:12:43', NULL),
-(9, 'Isha Vora', 'ishavora@gmail.com', NULL, '$2y$12$xVO/oGKafGvgU1.GwS.9zeBY2w1BQ5lfsORhK3cg52X0osIOYJ8fy', 'free', 'None', 'None', NULL, '2025-12-03 08:29:10', '2026-01-06 06:45:55', NULL),
-(14, 'isha', 'ishavora123@example.com', NULL, '$2y$12$EkMGdMMEipHzxJ9AebPN3u.Ft5.a1cQhCUaZPYAfhhjIjmHTYuAPu', 'free', 'None', 'None', NULL, '2025-12-08 06:14:43', '2026-01-06 08:21:53', NULL),
-(16, 'Meera Patel', 'meerap895@gmail.com', NULL, '$2y$12$JP7vmfzzBzutIKgehqz9JO0PKiQ5TuBmXtCI0IJk7IGcsKMZ1Vyw2', 'free', 'None', 'None', NULL, '2025-12-11 05:24:59', '2026-01-06 08:21:49', NULL),
-(17, 'Swati Gangani', 'swatig07@gmail.com', NULL, '$2y$12$M4i6wClEsw1EhSLph7FocuGoDCUjCQOz7UWdwlfNGEfIXx041BspC', 'free', 'None', 'None', NULL, '2025-12-18 06:04:35', '2026-01-06 08:16:00', NULL),
-(18, 'Viral Gangani', 'techxpert.manish@gmail.com', NULL, '$2y$12$YOqaSOo1Kr/qWRfX2fvfqe5.2pJAID9Bl8CyMzkuO/EQVXensHC3a', 'free', 'None', 'None', NULL, '2025-12-18 06:13:07', '2026-01-12 04:47:57', NULL),
-(19, 'Ravi Joshi', 'ravij253@gmail.com', NULL, '$2y$12$Fmh5cQ3uVPsPoyisVu/4FeiKwjrVep6hxD6rNPnzSZ744YVmKwXlm', 'free', 'None', 'banned', NULL, '2025-12-19 05:59:11', '2026-01-06 06:49:19', NULL),
-(20, 'Shreya poriya', 'shreyaporiya08@gmail.com', NULL, '$2y$12$uGl3hMwIijF1ZqykT0xF.Ov.H6FW7Ndh1PmqzQ8SXiR8uS3suj.xW', 'free', 'None', 'None', NULL, '2026-01-06 08:04:39', '2026-01-06 08:39:43', NULL),
-(22, 'Rishiraj Jadeja', 'rishiraj456@gmail.com', NULL, '$2y$12$ihaRj5ZmbdRxQoGqIjfx1upcggicwhulMyt/JpSwIQh7Ci9yw0fTa', 'free', 'None', 'None', NULL, '2026-01-08 07:58:58', '2026-01-13 08:08:03', NULL),
-(23, 'Krina Visrolia', 'krinavisrolia123@gmail.com', NULL, '$2y$12$99Ke6T3YfGyCxXQVJE36ROjDRw9mgVNPS81FlkT/rFaWoiNr2ksoa', 'free', 'None', 'None', NULL, '2026-01-13 06:00:54', '2026-01-13 06:00:54', NULL),
-(24, 'test', 'test@stazing.com', NULL, '$2y$12$kKy/rUtV5jA49HrBE/8xgeMNWDjjyTjC3m6fqZjB/2QEDCndckGZO', 'free', 'None', 'None', NULL, '2026-01-15 05:15:39', '2026-01-15 05:15:39', NULL),
-(25, 'tersd', 'testabc@stazing.com', NULL, '$2y$12$3ez93GI7TR/G5KZqdxfpieA9q78NugUFV08X7Eed676HwV7./GTU2', 'free', 'None', 'None', NULL, '2026-01-15 05:21:22', '2026-01-15 05:21:22', NULL),
-(26, 'testshreya', 'testshreya@gmail.com', NULL, '$2y$12$o1fK.znHHzL7xAa1zisn0esZY/BFunHQefAVpNJh2wDZ.IeBiQSZW', 'free', 'None', 'None', NULL, '2026-01-15 06:17:37', '2026-01-15 06:17:37', NULL),
-(27, 'testtest', 'testtest@gmail.com', NULL, '$2y$12$hU0bf6WnB5DG8dYnok3BX.qMbk5yWzk/QqZG9Y6lEfA9PEWDZu.sy', 'free', 'None', 'None', NULL, '2026-01-15 08:13:12', '2026-01-15 08:13:12', NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `gender`, `email_verified_at`, `password`, `role`, `plan`, `status`, `remember_token`, `created_at`, `updated_at`, `session_id`) VALUES
+(1, 'Shreya Poriya', 'shreya.p@techxperts.co.in', 'Female', NULL, '$2y$12$PXyKZgJrItoGSf7ACHtZRu5eRkNOJiXVAIrjI/Klh3PQh6R2Dkfi.', 'admin', 'None', 'None', NULL, '2025-12-02 07:57:07', '2026-01-12 08:13:33', NULL),
+(2, 'Lilah Copeland', 'mopoku@mailinator.com', 'Male', NULL, '$2y$12$r8paRUfGt9jbyKyrLKpQiuBCHpCHgBx/mdQ4DJspWQUNceQ9UEdMm', 'free', 'None', 'None', NULL, '2025-12-02 08:14:41', '2025-12-02 08:14:41', NULL),
+(4, 'chhaiya', 'testtest95107@gmail.com', 'Female', NULL, '$2y$12$7nmm6Z6GKnHTuLWVHWNYz.1XrLfyOlR8OYnhwqEHgv8vjHPpEJalm', 'free', 'None', 'None', 'gwdztqMSJ3yUJmF2ALH3OUOA0CUO4kOLwoWGwbUzG6H5ggMzdYOzR9X8E5yK', '2025-12-03 06:28:56', '2026-01-28 05:14:36', NULL),
+(5, 'Priya', 'priyashah@gmail.com', 'Female', NULL, '$2y$12$u1QP6XoFFbNUzjQr2EZSgOfwK.HwqV.stQcYCsOw3Yw8fYB9cNA52', 'free', 'None', 'None', NULL, '2025-12-03 08:12:43', '2025-12-03 08:12:43', NULL),
+(9, 'Isha Vora', 'ishavora@gmail.com', 'Female', NULL, '$2y$12$xVO/oGKafGvgU1.GwS.9zeBY2w1BQ5lfsORhK3cg52X0osIOYJ8fy', 'free', 'None', 'None', NULL, '2025-12-03 08:29:10', '2026-01-06 06:45:55', NULL),
+(14, 'isha', 'ishavora123@example.com', 'Female', NULL, '$2y$12$EkMGdMMEipHzxJ9AebPN3u.Ft5.a1cQhCUaZPYAfhhjIjmHTYuAPu', 'free', 'None', 'None', NULL, '2025-12-08 06:14:43', '2026-01-06 08:21:53', NULL),
+(16, 'Meera Patel', 'meerap895@gmail.com', 'Female', NULL, '$2y$12$JP7vmfzzBzutIKgehqz9JO0PKiQ5TuBmXtCI0IJk7IGcsKMZ1Vyw2', 'free', 'None', 'None', NULL, '2025-12-11 05:24:59', '2026-01-06 08:21:49', NULL),
+(17, 'Swati Gangani', 'swatig07@gmail.com', 'Female', NULL, '$2y$12$M4i6wClEsw1EhSLph7FocuGoDCUjCQOz7UWdwlfNGEfIXx041BspC', 'free', 'None', 'None', NULL, '2025-12-18 06:04:35', '2026-01-06 08:16:00', NULL),
+(18, 'Viral Gangani', 'techxpert.manish@gmail.com', 'Male', NULL, '$2y$12$YOqaSOo1Kr/qWRfX2fvfqe5.2pJAID9Bl8CyMzkuO/EQVXensHC3a', 'free', 'None', 'None', NULL, '2025-12-18 06:13:07', '2026-01-12 04:47:57', NULL),
+(19, 'Ravi Joshi', 'ravij253@gmail.com', 'Female', NULL, '$2y$12$Fmh5cQ3uVPsPoyisVu/4FeiKwjrVep6hxD6rNPnzSZ744YVmKwXlm', 'free', 'None', 'banned', NULL, '2025-12-19 05:59:11', '2026-01-06 06:49:19', NULL),
+(20, 'Shreya poriya', 'shreyaporiya08@gmail.com', 'Female', NULL, '$2y$12$uGl3hMwIijF1ZqykT0xF.Ov.H6FW7Ndh1PmqzQ8SXiR8uS3suj.xW', 'free', 'None', 'None', NULL, '2026-01-06 08:04:39', '2026-01-06 08:39:43', NULL),
+(22, 'Rishiraj Jadeja', 'rishiraj456@gmail.com', 'Male', NULL, '$2y$12$ihaRj5ZmbdRxQoGqIjfx1upcggicwhulMyt/JpSwIQh7Ci9yw0fTa', 'free', 'None', 'None', NULL, '2026-01-08 07:58:58', '2026-01-13 08:08:03', NULL),
+(23, 'Krina Visrolia', 'krinavisrolia123@gmail.com', 'Female', NULL, '$2y$12$99Ke6T3YfGyCxXQVJE36ROjDRw9mgVNPS81FlkT/rFaWoiNr2ksoa', 'free', 'None', 'None', NULL, '2026-01-13 06:00:54', '2026-01-13 06:00:54', NULL),
+(24, 'test', 'test@stazing.com', 'Female', NULL, '$2y$12$kKy/rUtV5jA49HrBE/8xgeMNWDjjyTjC3m6fqZjB/2QEDCndckGZO', 'free', 'None', 'None', NULL, '2026-01-15 05:15:39', '2026-01-28 07:59:47', NULL),
+(25, 'tersd', 'testabc@stazing.com', 'Male', NULL, '$2y$12$3ez93GI7TR/G5KZqdxfpieA9q78NugUFV08X7Eed676HwV7./GTU2', 'free', 'None', 'None', NULL, '2026-01-15 05:21:22', '2026-01-15 05:21:22', NULL),
+(27, 'testtest', 'testtest@gmail.com', 'Female', NULL, '$2y$12$hU0bf6WnB5DG8dYnok3BX.qMbk5yWzk/QqZG9Y6lEfA9PEWDZu.sy', 'free', 'None', 'None', NULL, '2026-01-15 08:13:12', '2026-01-15 08:13:12', NULL),
+(28, 'testshreya', 'testshreya@gmail.com', 'Female', NULL, '$2y$12$KWs0CV85e2F0xPs9YgGvq.Znp3/dmxELyebYsd5w7/ojM5eaTPY22', 'free', 'None', 'None', NULL, '2026-01-23 07:09:08', '2026-01-23 07:09:08', NULL),
+(29, 'testsp', 'testsp@gmail.com', 'Male', NULL, '$2y$12$UoBVfNNcZtmo.eRRyhtmluTfzNLyMhPInGMs5bOPxQO7BYhTD/wye', 'free', 'None', 'None', 'AVGPlyH4wfZhKWzTkMMnKAeDJjwH9abpgLqACTi1YYhz6MJAkKyFNZcRx4va', '2026-01-27 05:38:09', '2026-01-27 05:40:06', NULL),
+(30, 'shreya test', 'shreyatest@gmail.com', 'Male', NULL, '$2y$12$2.iYlZzxHUZhR83tLIZjqe4yCQ2HNlNvtFyEtczL9Ah5WZFbFt1Ci', 'free', 'None', 'None', NULL, '2026-02-03 13:02:33', '2026-02-03 13:23:49', NULL);
 
 -- --------------------------------------------------------
 
@@ -819,12 +875,11 @@ ALTER TABLE `profiles`
   ADD KEY `profiles_user_id_foreign` (`user_id`);
 
 --
--- Indexes for table `profile_reports`
+-- Indexes for table `ratings`
 --
-ALTER TABLE `profile_reports`
+ALTER TABLE `ratings`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `profile_reports_reporter_id_foreign` (`reporter_id`),
-  ADD KEY `profile_reports_reported_profile_id_foreign` (`reported_profile_id`);
+  ADD KEY `ratings_user_id_foreign` (`user_id`);
 
 --
 -- Indexes for table `reports`
@@ -848,6 +903,13 @@ ALTER TABLE `sessions`
 ALTER TABLE `states`
   ADD PRIMARY KEY (`id`),
   ADD KEY `states_country_id_foreign` (`country_id`);
+
+--
+-- Indexes for table `testimonials`
+--
+ALTER TABLE `testimonials`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `testimonials_profile_id_foreign` (`profile_id`);
 
 --
 -- Indexes for table `users`
@@ -903,13 +965,13 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT for table `filters`
 --
 ALTER TABLE `filters`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `images`
 --
 ALTER TABLE `images`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `jobs`
@@ -921,7 +983,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `personal_access_tokens`
@@ -933,13 +995,13 @@ ALTER TABLE `personal_access_tokens`
 -- AUTO_INCREMENT for table `profiles`
 --
 ALTER TABLE `profiles`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
--- AUTO_INCREMENT for table `profile_reports`
+-- AUTO_INCREMENT for table `ratings`
 --
-ALTER TABLE `profile_reports`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+ALTER TABLE `ratings`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `reports`
@@ -954,10 +1016,16 @@ ALTER TABLE `states`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
+-- AUTO_INCREMENT for table `testimonials`
+--
+ALTER TABLE `testimonials`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `user_request`
@@ -1007,11 +1075,10 @@ ALTER TABLE `profiles`
   ADD CONSTRAINT `profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `profile_reports`
+-- Constraints for table `ratings`
 --
-ALTER TABLE `profile_reports`
-  ADD CONSTRAINT `profile_reports_reported_profile_id_foreign` FOREIGN KEY (`reported_profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `profile_reports_reporter_id_foreign` FOREIGN KEY (`reporter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `ratings`
+  ADD CONSTRAINT `ratings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `reports`
@@ -1025,6 +1092,12 @@ ALTER TABLE `reports`
 --
 ALTER TABLE `states`
   ADD CONSTRAINT `states_country_id_foreign` FOREIGN KEY (`country_id`) REFERENCES `countries` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `testimonials`
+--
+ALTER TABLE `testimonials`
+  ADD CONSTRAINT `testimonials_profile_id_foreign` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `user_request`

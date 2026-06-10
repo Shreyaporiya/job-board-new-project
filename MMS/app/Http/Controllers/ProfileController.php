@@ -18,11 +18,16 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserRequest;
+use Carbon\Carbon;
+use App\Models\Subscription;
+use App\Models\Payment;
+
 class ProfileController extends Controller
 {
     public function index()
     {
         $myProfile = Profile::where('user_id', Auth::id())->first();
+
 
         if ($myProfile) {
             // All public profiles except logged-in user
@@ -37,9 +42,7 @@ class ProfileController extends Controller
                 ->get();
 
             $myFilters = collect();
-
-            $myFilters = Filter::where('profile_id', $myProfile->id)
-                ->get(); // only active filters
+            $myFilters = Filter::where('profile_id', $myProfile->id)->get();
 
             $relations = [];
             if ($myProfile) {
@@ -85,10 +88,46 @@ class ProfileController extends Controller
             $countries = DB::table('countries')
                 ->get();
 
-            return view('profile.index', compact('profiles', 'myFilters', 'countries'));
+            // Rating Popup Logic
+            $rating_status = "nothing";
+
+            $rating = DB::table('ratings')
+                ->where('user_id', Auth::id())
+                ->latest('updated_at')
+                ->first();
+
+            if (!$rating) {
+
+                $rating_status = "show";
+
+            } else {
+
+                if (
+                    ($rating->status == 'rated' &&
+                        Carbon::parse($rating->updated_at)->lte(now()->subDays(30)))
+                    ||
+                    ($rating->status == 'skipped' &&
+                        Carbon::parse($rating->updated_at)->lte(now()->subDays(3)))
+                    ||
+                    ($rating->status == 'cancelled' &&
+                        Carbon::parse($rating->updated_at)->lte(now()->subDays(1)))
+                    ||
+                    $rating->status == 'pending'
+                ) {
+                    $rating_status = "show";
+                } else {
+                    $rating_status = "nothing";
+                }
+            }
+
+            // dd($rating);
+
+            return view('profile.index', compact('profiles', 'myFilters', 'countries', 'rating_status'));
+
         } else {
-            return view('profile.create');
+            return redirect()->route('profile.create');
         }
+
     }
 
     public function getStates($country_id)
@@ -106,13 +145,103 @@ class ProfileController extends Controller
     }
 
 
-    public function show($id)
+    public function show($id, $page)
     {
+
+        // dd($page);
         $profile = Profile::with(['user', 'images'])
             ->where('id', $id)   // user_id from route
             ->firstOrFail();
 
-        return view('profile.show', compact('profile'));
+        $city = DB::table('cities')->where('id', $profile->city)->first();
+        if ($city) {
+            $profile->city = $city->name;
+        }
+
+        $country = DB::table('countries')->where('id', $profile->country)->first();
+        if ($country) {
+            $profile->country = $country->name;
+        }
+
+        $state = DB::table('states')->where('id', $profile->state)->first();
+        if ($state) {
+            $profile->state = $state->name;
+        }
+
+        $rating_status = "nothing";
+
+        $user = auth()->user();
+
+        if ($user) {
+
+            $rating = DB::table('ratings')
+                ->where('user_id', $user->id)
+                ->latest('updated_at')
+                ->first();
+
+            // Never rated before
+            if (!$rating) {
+
+                $rating_status = "show";
+
+            } else {
+
+                // User already rated
+                if ($rating->status == "rated") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(30))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User skipped
+                elseif ($rating->status == "skipped") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(3))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User cancelled popup
+                elseif ($rating->status == "cancelled") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(1))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                } elseif ($rating->status === "pending") {
+                    $rating_status = "show";
+                }
+            }
+        }
+
+        // dd($rating_status);
+
+
+        return view('profile.show', compact('profile', 'rating_status', 'page'));
     }
 
 
@@ -122,18 +251,14 @@ class ProfileController extends Controller
     {
         $countries = DB::table('countries')
             ->get();
-        return view('profile.create', compact('countries'));
-        // return view('profile.demo');
-
+        $rating_status = "nothing";
+        return view('profile.create', compact('countries', 'rating_status'));
     }
 
     public function submit(Request $request)
     {
         return $request->skills; // array
     }
-
-
-
 
 
     // Store profile data
@@ -200,14 +325,10 @@ class ProfileController extends Controller
             ));
         }
 
-        // Optional safety cleanup
         $preferences['personality'] = array_values(
             array_filter($preferences['personality'] ?? [])
         );
         // city, state, country
-        // city, state, country
-        // city, state, country
-
 
         if (!empty($preferences['location'][0])) {
 
@@ -221,6 +342,7 @@ class ProfileController extends Controller
         $preferences = array_filter($preferences, function ($value) {
             return $value !== null && $value !== '' && $value !== [];
         });
+
 
         /*CREATE PROFILE*/
         $profile = Profile::create([
@@ -248,7 +370,7 @@ class ProfileController extends Controller
             $profile->images()->create([
                 'user_id' => Auth::id(),
                 'file_name' => $fileName,
-                'file_path' => 'storage/' . $path,
+                'file_path' => $path,
                 'Type_of_image' => 'profile',
             ]);
         }
@@ -263,55 +385,257 @@ class ProfileController extends Controller
         $profile = Profile::where('user_id', Auth::id())->first();
         $countries = DB::table('countries')
             ->get();
+        $rating_status = "nothing";
+
+        $user = auth()->user();
+
+        // dd($user->contact_number);
+
+        if ($user) {
+
+            $rating = DB::table('ratings')
+                ->where('user_id', $user->id)
+                ->latest('updated_at')
+                ->first();
+
+            // Never rated before
+            if (!$rating) {
+
+                $rating_status = "show";
+
+            } else {
+
+                // User already rated
+                if ($rating->status == "rated") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(30))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User skipped
+                elseif ($rating->status == "skipped") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(3))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User cancelled popup
+                elseif ($rating->status == "cancelled") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(1))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                } elseif ($rating->status === "pending") {
+                    $rating_status = "show";
+                }
+            }
+        }
 
         return view('profile.edit', [
             'user' => $request->user(),
             'profile' => $profile,
             'countries' => $countries,
+            'rating_status' => $rating_status,
         ]);
     }
 
-    public function update(ProfileUpdateRequest $request)
+    public function update(Request $request)
     {
+        $request->validate(
+            [
+                // User
+                'name' => 'required|string|max:50',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|digits_between:10,15',
+
+                // Profile
+                'age' => 'required|integer|min:18|max:100',
+                'religion' => 'required|string|max:50',
+                'community' => 'required|string|max:50',
+                'marital_status' => 'required|in:single,divorced,widow',
+                'profession' => 'required|string|max:100',
+
+                'country' => 'required',
+                'state' => 'required',
+                'city' => 'required',
+
+                'visibility' => 'required|in:public,private',
+
+                // Image (optional while editing)
+                'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+
+                /* ---------- PREFERENCES ---------- */
+
+                'preferences.age_min' => 'required|integer|min:18|max:100',
+                'preferences.age_max' => 'required|integer|min:18|max:100|gte:preferences.age_min',
+
+                'preferences.religion' => 'required|string|max:50',
+                'preferences.cast' => 'required|string|max:50',
+
+                'preferences.marital_status' => 'required|array',
+                'preferences.marital_status.*' => 'string',
+
+                'preferences.profession' => 'required|array',
+                'preferences.profession.*' => 'string',
+
+                'preferences.personality' => 'required|array',
+                'preferences.personality.*' => 'string',
+
+                'preferences.location' => 'required|array',
+                'preferences.location.*' => 'string',
+            ],
+            [
+                'preferences.age_max.gte' =>
+                    'Maximum age must be greater than or equal to minimum age.',
+
+                'preferences.personality.*.required' =>
+                    'Please select at least one personality trait.',
+
+                'preferences.location.*.required' =>
+                    'Please select a preferred location.',
+
+                'preferences.marital_status.*.required' =>
+                    'Please select a preferred marital status.',
+
+                'preferences.profession.*.required' =>
+                    'Please enter preferred profession.',
+            ]
+        );
+
+        // dd($request->cast);
         $user = $request->user();
-        $profile = Profile::firstOrCreate(['user_id' => $user->id]);
 
-        /* NORMAL PROFILE UPDATE */
+        $profile = Profile::firstOrCreate([
+            'user_id' => $user->id
+        ]);
 
-        // Update user fields
-        $user->fill($request->validated());
-        $user->save();
+        /*
+        |--------------------------------------------------------------------------
+        | Update User
+        |--------------------------------------------------------------------------
+        */
 
-        // Update profile fields (except image)
-        $profile->fill($request->except('profile_image'));
-        $profile->save();
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'contact_number' => $request->phone,
+        ]);
 
-        /* PROFILE IMAGE UPLOAD  */
+        /*
+        |--------------------------------------------------------------------------
+        | Clean Preferences
+        |--------------------------------------------------------------------------
+        */
+
+        $preferences = $request->preferences ?? [];
+
+        // Profession
+        if (!empty($preferences['profession'][0])) {
+            $preferences['profession'] = array_values(array_filter(
+                array_map('trim', explode(',', $preferences['profession'][0]))
+            ));
+        }
+
+        // Personality
+        $preferences['personality'] = array_values(
+            array_filter($preferences['personality'] ?? [])
+        );
+
+        // Location
+        if (!empty($preferences['location'][0])) {
+            $preferences['location'] = array_values(array_filter(
+                array_map('trim', explode(',', $preferences['location'][0]))
+            ));
+        }
+
+        $preferences = array_filter($preferences, function ($value) {
+            return $value !== null && $value !== '' && $value !== [];
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Profile
+        |--------------------------------------------------------------------------
+        */
+
+        $profile->update([
+            'age' => $request->age,
+            'religion' => $request->religion,
+            'community' => $request->community,
+            'marital_status' => $request->marital_status,
+            'profession' => $request->profession,
+            'country' => $request->country,
+            'state' => $request->state,
+            'city' => $request->city,
+            'visibility' => $request->visibility,
+            'preferences' => $preferences,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Profile Image Upload
+        |--------------------------------------------------------------------------
+        */
+
         if ($request->hasFile('profile_image')) {
 
             $file = $request->file('profile_image');
+
             $fileName = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('uploads/profiles', $fileName, 'public');
+
+            $path = $file->storeAs(
+                'uploads/profiles',
+                $fileName,
+                'public'
+            );
 
             $oldImage = $profile->images()->first();
 
             if ($oldImage) {
-                // delete old file
-                if (Storage::disk('public')->exists(str_replace('storage/', '', $oldImage->file_path))) {
-                    Storage::disk('public')->delete(str_replace('storage/', '', $oldImage->file_path));
+
+                if (Storage::disk('public')->exists($oldImage->file_path)) {
+                    Storage::disk('public')->delete($oldImage->file_path);
                 }
 
                 $oldImage->update([
                     'file_name' => $fileName,
-                    'file_path' => 'storage/' . $path,
+                    'file_path' => $path,
                     'Type_of_image' => 'profile',
                 ]);
+
             } else {
+
                 $profile->images()->create([
                     'user_id' => $user->id,
                     'profile_id' => $profile->id,
                     'file_name' => $fileName,
-                    'file_path' => 'storage/' . $path,
+                    'file_path' => $path,
                     'Type_of_image' => 'profile',
                 ]);
             }
@@ -319,8 +643,9 @@ class ProfileController extends Controller
 
         return redirect()
             ->route('profile.edit')
-            ->with('status', 'Profile updated successfully!');
+            ->with('success', 'Profile updated successfully!');
     }
+
 
 
     public function changeActivation(Request $request): RedirectResponse
@@ -347,33 +672,49 @@ class ProfileController extends Controller
     }
     public function deleteForm(Request $request): View
     {
-        return view('profile.partials.delete-user-form');
+        $rating_status = "nothing";
+        return view('profile.partials.delete-user-form', compact('rating_status'));
     }
+
+
 
     public function destroyProfile(Request $request)
     {
-        // PASSWORD VALIDATION
         $request->validate([
             'password' => ['required'],
         ]);
 
         $user = Auth::user();
 
-        // PASSWORD CHECK
         if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'password' => 'Incorrect password.',
             ]);
         }
 
-        // GET PROFILE
         $profile = Profile::where('user_id', $user->id)->first();
 
         if (!$profile) {
             return back()->with('error', 'Profile not found.');
         }
 
-        // DELETE PROFILE IMAGES
+        Subscription::where('user_id', $user->id)
+            ->where('stripe_status', 'active')
+            ->update([
+                'stripe_status' => 'cancelled',
+            ]);
+
+        Payment::where('user_id', $user->id)
+            ->where('payment_status', 'success')
+            ->update([
+                'payment_status' => 'cancelled',
+            ]);
+
+        $user->update([
+            'plan' => 'free',
+        ]);
+
+
         foreach ($profile->images as $image) {
 
             $filePath = public_path($image->file_path);
@@ -385,19 +726,16 @@ class ProfileController extends Controller
             $image->delete();
         }
 
-        // DELETE PROFILE
         $profile->delete();
 
-        // LOGOUT USER
         Auth::logout();
 
-        // INVALIDATE SESSION
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()
-            ->route('/')
-            ->with('success', 'Profile deleted successfully!');
+            ->route('dashboard')
+            ->with('success', 'Profile deleted and subscription cancelled successfully.');
     }
 
     public function search(Request $request)
@@ -466,7 +804,78 @@ class ProfileController extends Controller
         /* ✅ ACTIVE FILTER ONLY (SoftDeletes respected) */
         $myFilters = Filter::where('profile_id', $profile->id)->get();
 
-        return view('profile.index', compact('profiles', 'myFilters'));
+        $rating_status = "nothing";
+
+        $user = auth()->user();
+
+        if ($user) {
+
+            $rating = DB::table('ratings')
+                ->where('user_id', $user->id)
+                ->latest('updated_at')
+                ->first();
+
+            // Never rated before
+            if (!$rating) {
+
+                $rating_status = "show";
+
+            } else {
+
+                // User already rated
+                if ($rating->status == "rated") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(30))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User skipped
+                elseif ($rating->status == "skipped") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(3))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User cancelled popup
+                elseif ($rating->status == "cancelled") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(1))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                } elseif ($rating->status === "pending") {
+                    $rating_status = "show";
+                }
+            }
+        }
+
+
+        return view('profile.index', compact('profiles', 'myFilters', 'rating_status'));
     }
 
     public function myProfile()
@@ -477,11 +886,120 @@ class ProfileController extends Controller
             return redirect()->route('profile.create')->with('info', 'Please create your profile first.');
         }
 
-        return view('profile.myprofile', compact('profile'));
+        $user = DB::table('users')->where('id', Auth::id())->first();
+        if ($user->contact_number) {
+            $profile->contact_number = $user->contact_number;
+        }
+
+        $role = DB::table('users')->where('id', Auth::id())->first();
+
+        // dd($role->plan);
+        if ($role->plan) {
+            $profile->plan = $role->plan;
+        }
+
+        $city = DB::table('cities')->where('id', $profile->city)->first();
+        if ($city) {
+            $profile->city = $city->name;
+        }
+
+        $country = DB::table('countries')->where('id', $profile->country)->first();
+        if ($country) {
+            $profile->country = $country->name;
+        }
+
+        $state = DB::table('states')->where('id', $profile->state)->first();
+        if ($state) {
+            $profile->state = $state->name;
+        }
+
+        $rating_status = "nothing";
+
+        $user = auth()->user();
+
+        if ($user) {
+
+            $rating = DB::table('ratings')
+                ->where('user_id', $user->id)
+                ->latest('updated_at')
+                ->first();
+
+            // Never rated before
+            if (!$rating) {
+
+                $rating_status = "show";
+
+            } else {
+
+                // User already rated
+                if ($rating->status == "rated") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(30))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User skipped
+                elseif ($rating->status == "skipped") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(3))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                }
+
+                // User cancelled popup
+                elseif ($rating->status == "cancelled") {
+
+                    if (
+                        Carbon::parse($rating->updated_at)
+                            ->lte(now()->subDays(1))
+                    ) {
+
+                        $rating_status = "show";
+
+                    } else {
+
+                        $rating_status = "nothing";
+                    }
+                } elseif ($rating->status === "pending") {
+                    $rating_status = "show";
+                }
+            }
+        }
+
+        $latestPayment = Payment::where('user_id', Auth::id())->get();
+
+        $latestPayment = DB::table('payments')->select('*')->where('user_id', Auth::id())->get();
+
+        // $planname = DB::Table('plans')->select('name')->where('id', $latestPayment->plan_id)->get();
+
+        return view(
+            'profile.myprofile',
+            compact(
+                'profile',
+                'rating_status',
+                'latestPayment'
+            )
+        );
     }
 
     // Soft delete a filter
-
     public function softDeleteFilter($id)
     {
         $filter = Filter::findOrFail($id);
@@ -496,7 +1014,6 @@ class ProfileController extends Controller
         return redirect()->back()->with('success', 'Filter removed successfully!');
     }
 
-    // Restore a soft deleted filter
     public function restoreFilter($id)
     {
         $filter = Filter::withTrashed()->findOrFail($id);

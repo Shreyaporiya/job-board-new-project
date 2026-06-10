@@ -123,10 +123,7 @@ body {
 /* Professional Title Style */
 .requests-title {
     font-size: 2.5rem;
-    /* Prominent but professional */
-    font-family: 'Roboto', sans-serif;
     color: #2c3e50;
-    /* Deep professional blue-gray */
     position: relative;
     display: inline-block;
     padding-bottom: 10px;

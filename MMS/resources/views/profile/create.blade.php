@@ -34,19 +34,6 @@
                                 @enderror
                             </div>
 
-                            <!-- <div class="col-md-6">
-                                <label class="pb-2 ps-1">Gender</label>
-                                <select name="gender" class="form-select data">
-                                    <option value="">Select</option>
-                                    <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                                </select>
-
-                                @error('gender')
-                                    <div class="text-danger mt-2">{{ $message }}</div>
-                                @enderror
-                            </div> -->
-
                             <div class="col-md-6">
                                 <label class="pb-2 ps-1">Religion</label>
                                 <input type="text" name="religion" class="form-control" value="{{ old('religion') }}">
@@ -67,6 +54,8 @@
                             <div class="col-md-12">
                                 <label class="pb-2 ps-1">Marital Status</label>
                                 <select name="marital_status" class="form-select data">
+                                    <option value="">Select Marital Status
+                                    </option>
                                     <option value="single" {{ old('marital_status') == 'single' ? 'selected' : '' }}>Single
                                     </option>
                                     <option value="divorced" {{ old('marital_status') == 'divorced' ? 'selected' : '' }}>
@@ -83,6 +72,11 @@
                     </div>
 
                     <button type="button" class="btn-main w-100" onclick="nextStep(2)">Next</button>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('dashboard') }}" class="text-decoration-none fw-semibold text-muted">
+                            Skip profile setup →
+                        </a>
+                    </div>
                 </div>
 
                 <!-- STEP 2: Professional & Location -->
@@ -113,7 +107,8 @@
                                     <option value="">Select Country</option>
                                     @foreach($countries as $country)
                                         <option value="{{ $country->id }}" {{ old('country') == $country->id ? 'selected' : '' }}>
-                                            {{ $country->name }}</option>
+                                            {{ $country->name }}
+                                        </option>
                                     @endforeach
                                 </select>
 
@@ -170,6 +165,11 @@
                         <button type="button" class="btn btn-secondary w-50" onclick="prevStep(1)">Previous</button>
                         <button type="button" class="btn-main w-50" onclick="nextStep(3)">Next</button>
                     </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('dashboard') }}" class="text-decoration-none fw-semibold text-muted">
+                            Skip profile setup →
+                        </a>
+                    </div>
                 </div>
 
                 <!-- STEP 3: Partner Preferences -->
@@ -220,9 +220,9 @@
                                 <label class="pb-2 ps-1">Preferred Marital Status</label>
                                 <select name="preferences[marital_status][]" class="form-select data">
                                     <option value="">Select Marital Status</option>
-                                    <option value="single">Single</option>
-                                    <option value="divorced">Divorced</option>
-                                    <option value="widow">Widow</option>
+                                    <option value="single" {{ old('preferences.marital_status') == 'single' ? 'selected' : '' }}>Single</option>
+                                    <option value="divorced" {{ old('preferences.marital_status') == 'divorced' ? 'selected' : '' }}>Divorced</option>
+                                    <option value="widow" {{ old('preferences.marital_status') == 'widow' ? 'selected' : '' }}>Widow</option>
                                 </select>
 
                                 @error('preferences.marital_status.*')
@@ -233,8 +233,9 @@
 
                             <div class="col-md-6">
                                 <label class="pb-2 ps-1">Preferred Profession</label>
-                                <input type="text" name="preferences[profession][]" class="form-control"
-                                    placeholder="Preferred Profession(s) e.g. Engineer, Doctor">
+                                <input type="text" name="preferences[profession][]"
+                                    value="{{ is_array(old('preferences.profession')) ? implode(', ', old('preferences.profession')) : old('preferences.profession') }}"
+                                    class="form-control">
 
                                 @error('preferences.profession.*')
                                     <div class="text-danger mt-2">{{ $message }}</div>
@@ -243,14 +244,9 @@
                             </div>
 
                             <div class="col-md-12">
-                                <!-- <input type="text" name="preferences[location][]" class="form-control"
-                                                        placeholder="Preferred Location(s) e.g. India,Gujarat,Ahmedabad"> -->
-
                                 <select name="preferences[location][]" class="form-select data">
                                     <option value="">Select Prefered location</option>
-
                                     <!-- India -->
-
                                     <option value="India,Gujarat,Rajkot" {{ in_array('India,Gujarat,Rajkot', old('preferences.location', [])) ? 'selected' : '' }}>India,Gujarat,Rajkot</option>
                                     <option value="India,Gujarat,Ahmedabad" {{ in_array('India,Gujarat,Ahmedabad', old('preferences.location', [])) ? 'selected' : '' }}>India,Gujarat,Ahmedabad
                                     </option>
@@ -259,10 +255,14 @@
                                     </option>
                                     <option value="India,Maharashtra,Pune" {{ in_array('India,Maharashtra,Pune', old('preferences.location', [])) ? 'selected' : '' }}>India,Maharashtra,Pune
                                     </option>
-                                    <option value="India,Rajasthan,Jaipur" {{ in_array('India,Rajasthan,Jaipur', old('preferences.location', [])) ? 'selected' : '' }}>India,Rajasthan,Jaipur</option>
-                                    <option value="India,Rajasthan,Udaipur" {{ in_array('India,Rajasthan,Udaipur', old('preferences.location', [])) ? 'selected' : '' }}>India,Rajasthan,Udaipur</option>
-                                    <option value="India,Karnataka,Bengaluru" {{ in_array('India,Karnataka,Bengaluru', old('preferences.location', [])) ? 'selected' : '' }}>India,Karnataka,Bengaluru</option>
-                                    <option value="India,Karnataka,Mysuru" {{ in_array('India,Karnataka,Mysuru', old('preferences.location', [])) ? 'selected' : '' }}>India,Karnataka,Mysuru</option>
+                                    <option value="India,Rajasthan,Jaipur" {{ in_array('India,Rajasthan,Jaipur', old('preferences.location', [])) ? 'selected' : '' }}>India,Rajasthan,Jaipur
+                                    </option>
+                                    <option value="India,Rajasthan,Udaipur" {{ in_array('India,Rajasthan,Udaipur', old('preferences.location', [])) ? 'selected' : '' }}>India,Rajasthan,Udaipur
+                                    </option>
+                                    <option value="India,Karnataka,Bengaluru" {{ in_array('India,Karnataka,Bengaluru', old('preferences.location', [])) ? 'selected' : '' }}>India,Karnataka,Bengaluru
+                                    </option>
+                                    <option value="India,Karnataka,Mysuru" {{ in_array('India,Karnataka,Mysuru', old('preferences.location', [])) ? 'selected' : '' }}>India,Karnataka,Mysuru
+                                    </option>
                                     <option value="India,Tamil Nadu,Chennai" {{ in_array('India,Tamil Nadu,Chennai', old('preferences.location', [])) ? 'selected' : '' }}>India,Tamil
                                         Nadu,Chennai</option>
                                     <option value="India,Tamil Nadu,Coimbatore" {{ in_array('India,Tamil Nadu,Coimbatore', old('preferences.location', [])) ? 'selected' : '' }}>India,Tamil
@@ -288,23 +288,28 @@
                                         UK,Wales,Cardiff</option>
 
                                     <!-- Canada -->
-                                    <option value="Canada,Ontario,Toronto" {{ in_array('Canada,Ontario,Toronto', old('preferences.location', [])) ? 'selected' : '' }}>Canada,Ontario,Toronto</option>
+                                    <option value="Canada,Ontario,Toronto" {{ in_array('Canada,Ontario,Toronto', old('preferences.location', [])) ? 'selected' : '' }}>Canada,Ontario,Toronto
+                                    </option>
                                     <option value="Canada,British Columbia,Vancouver" {{ in_array('Canada,British Columbia,Vancouver', old('preferences.location', [])) ? 'selected' : '' }}>
                                         Canada,British Columbia,Vancouver
                                     </option>
-                                    <option value="Canada,Alberta,Calgary" {{ in_array('Canada,Alberta,Calgary', old('preferences.location', [])) ? 'selected' : '' }}>Canada,Alberta,Calgary</option>
+                                    <option value="Canada,Alberta,Calgary" {{ in_array('Canada,Alberta,Calgary', old('preferences.location', [])) ? 'selected' : '' }}>Canada,Alberta,Calgary
+                                    </option>
 
                                     <!-- Australia -->
                                     <option value="Australia,New South Wales,Sydney" {{ in_array('Australia,New South Wales,Sydney', old('preferences.location', [])) ? 'selected' : '' }}>Australia,New
                                         South Wales,Sydney
                                     </option>
-                                    <option value="Australia,Victoria,Melbourne" {{ in_array('Australia,Victoria,Melbourne', old('preferences.location', [])) ? 'selected' : '' }}>Australia,Victoria,Melbourne</option>
+                                    <option value="Australia,Victoria,Melbourne" {{ in_array('Australia,Victoria,Melbourne', old('preferences.location', [])) ? 'selected' : '' }}>Australia,Victoria,Melbourne
+                                    </option>
                                     <option value="Australia,Queensland,Brisbane" {{ in_array('Australia,Queensland,Brisbane', old('preferences.location', [])) ? 'selected' : '' }}>Australia,Queensland,Brisbane</option>
 
                                     <!-- Germany -->
-                                    <option value="Germany,Bavaria,Munich" {{ in_array('Germany,Bavaria,Munich', old('preferences.location', [])) ? 'selected' : '' }}>Germany,Bavaria,Munich</option>
+                                    <option value="Germany,Bavaria,Munich" {{ in_array('Germany,Bavaria,Munich', old('preferences.location', [])) ? 'selected' : '' }}>Germany,Bavaria,Munich
+                                    </option>
                                     <option value="Germany,Berlin,Berlin" {{ in_array('Germany,Berlin,Berlin', old('preferences.location', [])) ? 'selected' : '' }}>Germany,Berlin,Berlin</option>
-                                    <option value="Germany,Hesse,Frankfurt" {{ in_array('Germany,Hesse,Frankfurt', old('preferences.location', [])) ? 'selected' : '' }}>Germany,Hesse,Frankfurt</option>
+                                    <option value="Germany,Hesse,Frankfurt" {{ in_array('Germany,Hesse,Frankfurt', old('preferences.location', [])) ? 'selected' : '' }}>Germany,Hesse,Frankfurt
+                                    </option>
                                 </select>
 
                                 @error('preferences.location.*')
@@ -342,6 +347,11 @@
                     <div class="d-flex gap-3 mt-3">
                         <button type="button" class="btn btn-secondary w-50" onclick="prevStep(2)">Previous</button>
                         <button type="submit" class="btn-main w-50">Submit</button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('dashboard') }}" class="text-decoration-none fw-semibold text-muted">
+                            Skip profile setup →
+                        </a>
                     </div>
                 </div>
             </form>
